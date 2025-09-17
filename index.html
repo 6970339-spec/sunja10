@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Школьный рейтинг — Online</title>
 <style>
-  :root{--bg:#0b1220;--muted:#7e8aa3;--text:#e8eefc;--gold:#ffcc33;--silver:#c0c7d1;--bronze:#d28b5b}
+  :root{--bg:#0b1220;--muted:#7e8aa3;--text:#e8eefc}
   html,body{height:100%}
   body{margin:0;background:radial-gradient(1200px 800px at 20% -10%,#142040 0%,#0b1220 60%);
        font-family:Inter,system-ui,Segoe UI,Roboto,Arial;color:var(--text)}
   .wrap{max-width:1400px;margin:0 auto;padding:24px}
   header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
   .title{font-weight:800;letter-spacing:.5px;font-size:clamp(22px,3vw,36px)}
-  .subtitle{color:var(--muted);font-size:clamp(12px,1.5vw,16px)}
+  .subtitle{color:#7e8aa3;font-size:clamp(12px,1.5vw,16px)}
   .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
   @media (max-width:1200px){.grid{grid-template-columns:repeat(2,1fr)}}
   @media (max-width:700px){.grid{grid-template-columns:1fr}}
@@ -24,7 +24,7 @@
   .right{display:flex;align-items:center;gap:14px}
   .score{font-weight:800;min-width:54px;text-align:right;font-size:20px}
   .medal{font-size:26px}
-  .footer{margin-top:10px;display:flex;justify-content:space-between;color:var(--muted);font-size:12px}
+  .footer{margin-top:10px;display:flex;justify-content:space-between;color:#7e8aa3;font-size:12px}
   .blink{animation:blink 1.2s linear infinite}@keyframes blink{50%{opacity:.35}}
 </style>
 </head>
@@ -46,11 +46,9 @@
   </div>
 </div>
 
-<!-- PapaParse для устойчивого парсинга CSV -->
 <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
 <script>
-  // === Ссылка на твой Google Sheets (Лист2 в CSV)
-  const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-yAedPlzSiucopAyXDGUcA4NC8sSVW1e6yxsFXksSIgxTkJhkONG6daXkg2Y8cGwaqsrfbt22_Py/pub?gid=1022445244&single=true&output=csv";
+  const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-yAedPlzSiucopAyXDGUCa4NC8sSVW1e6yxsFXksSIgxTkJhkONG6daXkg2Y8cGwaqsrffbt22_Py/pub?gid=1022445244&single=true&output=csv";
   const REFRESH_MS = 5000;
 
   const gridEl = document.getElementById('grid');
@@ -59,24 +57,34 @@
 
   const medalOrder = { gold:0, silver:1, bronze:2, "":3 };
   function medalType(str){
-    const s = (str||'').toString().toLowerCase();
-    if (s.includes('🥇') || s.includes('зол') || s.includes('gold'))   return 'gold';
-    if (s.includes('🥈') || s.includes('сер') || s.includes('silver')) return 'silver';
-    if (s.includes('🥉') || s.includes('брон')|| s.includes('bronze')) return 'bronze';
+    const s = (str||'').toLowerCase();
+    if (s.includes('зол') || s.includes('gold')) return 'gold';
+    if (s.includes('сер') || s.includes('silver')) return 'silver';
+    if (s.includes('брон')|| s.includes('bronze')) return 'bronze';
     return '';
   }
-  function medalEmoji(type){
-    if(type==='gold')   return '🥇';
-    if(type==='silver') return '🥈';
-    if(type==='bronze') return '🥉';
-    return '';
-  }
+  function medalEmoji(type){ return type==='gold'?'🥇':type==='silver'?'🥈':type==='bronze'?'🥉':''; }
 
   async function fetchCSV(){
     try{
       statusEl.innerHTML = 'Обновление… <span class="blink">●</span>';
       const res = await fetch(CSV_URL + '&_=' + Date.now(), {cache:'no-store'});
+      if(!res.ok) throw new Error('HTTP '+res.status);
       const text = await res.text();
+
+      // Проверка: точно CSV, а не HTML/JS
+      const ct = (res.headers.get('content-type')||'').toLowerCase();
+      const head = text.slice(0,200).toLowerCase();
+      const looksLikeCSV = ct.includes('text/csv')
+                        || ct.includes('ms-excel')
+                        || (!head.includes('<html') && !head.includes('function(') && (text.includes(',')||text.includes(';')));
+      if(!looksLikeCSV){
+        statusEl.textContent = 'Не CSV: перепроверь ссылку публикации Лист2 (CSV).';
+        gridEl.innerHTML = '';
+        updatedEl.textContent = 'Время: ' + new Date().toLocaleTimeString();
+        return;
+      }
+
       const parsed = Papa.parse(text, { skipEmptyLines: "greedy" });
       render(parsed.data);
       statusEl.textContent = 'Обновлено';
@@ -88,72 +96,45 @@
   }
 
   function render(rows){
-    if (!rows || rows.length === 0) {
-      statusEl.textContent = 'CSV пустой';
-      return;
-    }
+    if(!rows || rows.length===0){ gridEl.innerHTML=''; return; }
 
-    // --- определяем, есть ли шапка
-    const headerRaw = rows[0].map(x => (x||'').toString().trim());
-    const header = headerRaw.map(h => h.toLowerCase());
-    const hasHeaderHints = header.some(h =>
-      h.includes('фио') || h.includes('name') ||
-      h.includes('итого') || h.includes('score') || h.includes('очки') ||
-      h.includes('медал') || h.includes('medal')
-    );
+    const header = rows[0].map(h => (h||'').toString().trim().toLowerCase());
+    const hasHdr = header.some(h => h.includes('фио')||h.includes('name')||h.includes('итого')||h.includes('score')||h.includes('медал')||h.includes('medal'));
+    const body = rows.slice(hasHdr?1:0);
 
-    const body = rows.slice(hasHeaderHints ? 1 : 0);
-
-    let idxName  = hasHeaderHints ? header.findIndex(h=>h.includes('фио')||h.includes('name'))   : 0;
-    let idxScore = hasHeaderHints ? header.findIndex(h=>h.includes('итого')||h.includes('score')||h.includes('очки')): 1;
-    let idxMedal = hasHeaderHints ? header.findIndex(h=>h.includes('медал')||h.includes('medal')): 2;
-
-    if (idxName  < 0) idxName  = 0;
-    if (idxScore < 0) idxScore = 1;
-    if (idxMedal < 0) idxMedal = 2;
+    let idxName  = hasHdr ? header.findIndex(h=>h.includes('фио')||h.includes('name'))   : 0;
+    let idxScore = hasHdr ? header.findIndex(h=>h.includes('итого')||h.includes('score')) : 1;
+    let idxMedal = hasHdr ? header.findIndex(h=>h.includes('медал')||h.includes('medal')) : 2;
+    if(idxName<0) idxName=0; if(idxScore<0) idxScore=1; if(idxMedal<0) idxMedal=2;
 
     const data = body.map(r=>{
       const name  = (r[idxName]  ?? '').toString().trim();
-      const score = parseFloat((r[idxScore] ?? '0').toString().replace(',', '.')) || 0;
-      // если колонка медали пустая — попробуем найти по всем ячейкам строки
-      let medal = (r[idxMedal] ?? '').toString().trim();
-      if(!medal){
-        for(const c of r){
-          const s = (c||'').toString().toLowerCase();
-          if (s.includes('зол')||s.includes('сер')||s.includes('брон')||s.includes('gold')||s.includes('silver')||s.includes('bronze')||s.includes('🥇')||s.includes('🥈')||s.includes('🥉')){
-            medal = (c||'').toString().trim(); break;
-          }
-        }
-      }
+      const score = parseFloat((r[idxScore] ?? '0').toString().replace(',','.')) || 0;
+      const medal = (r[idxMedal] ?? '').toString().trim();
       return { name, score: Math.round(score), medal };
     }).filter(r=>r.name);
 
-    // сортировка: 🥇 → 🥈 → 🥉 → очки ↓ → ФИО ↑
     data.sort((a,b)=>{
       const ma = medalType(a.medal), mb = medalType(b.medal);
-      const byMedal = medalOrder[ma] - medalOrder[mb];
-      if(byMedal) return byMedal;
-      const byScore = (b.score||0) - (a.score||0);
-      if(byScore) return byScore;
+      const byM = medalOrder[ma]-medalOrder[mb]; if(byM) return byM;
+      const byS = (b.score||0)-(a.score||0);      if(byS) return byS;
       return a.name.localeCompare(b.name,'ru');
     });
 
-    gridEl.innerHTML = '';
+    gridEl.innerHTML='';
     data.forEach((row,i)=>{
-      const mtype = medalType(row.medal);
-      const memoji = medalEmoji(mtype);
-      const tile = document.createElement('div'); tile.className='tile';
-      tile.title = row.medal || '';
-      tile.innerHTML = `
+      const t = medalType(row.medal), e = medalEmoji(t);
+      const el = document.createElement('div'); el.className='tile';
+      el.innerHTML = `
         <div class="left">
           <div class="rank">${i+1}</div>
-          <div class="name">${memoji ? memoji+' ' : ''}${row.name}</div>
+          <div class="name">${e?e+' ':''}${row.name}</div>
         </div>
         <div class="right">
-          ${memoji ? `<div class="medal" data-type="${mtype}">${memoji}</div>` : ''}
+          ${e?`<div class="medal" data-type="${t}">${e}</div>`:''}
           <div class="score">${row.score}</div>
         </div>`;
-      gridEl.appendChild(tile);
+      gridEl.appendChild(el);
     });
   }
 
