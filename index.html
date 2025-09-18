@@ -7,6 +7,14 @@
 <style>
   :root{
     --bg:#0b1220; --muted:#7e8aa3; --text:#e8eefc;
+    /* Позиции и размеры твоей картинки (фон и сигнал) */
+    --bat-size: 520px;     /* большой задний логотип */
+    --bat-top:  -10px;
+    --bat-right: -40px;
+
+    --signal-size: 260px;  /* маленький Bat-Signal */
+    --signal-top:  22px;
+    --signal-right: 18px;
   }
   html,body{height:100%}
   body{
@@ -16,11 +24,11 @@
     overflow-x:hidden;
   }
 
-  /* Ночной город внизу (SVG) */
-  .city {
-    position: fixed; left:0; right:0; bottom:0; height:160px; z-index:0;
+  /* Ночной город (низ) */
+  .city{
+    position:fixed; left:0; right:0; bottom:0; height:160px; z-index:0;
     background:
-      linear-gradient(to top, rgba(0,0,0,.55), rgba(0,0,0,0)) 0 0/100% 100%,
+      linear-gradient(to top, rgba(0,0,0,.55), rgba(0,0,0,0)),
       url('data:image/svg+xml;utf8,\
       <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="160" viewBox="0 0 1600 160">\
         <rect width="1600" height="160" fill="%230a1326"/>\
@@ -30,66 +38,71 @@
     opacity:.85; pointer-events:none;
   }
 
-  .wrap{max-width:800px;margin:0 auto;padding:20px; position:relative; z-index:1}
+  /* БОЛЬШОЙ ЗАДНИЙ ЛОГОТИП (твоя картинка) */
+  .bat-bg{
+    position:fixed; z-index:1;
+    top: var(--bat-top); right: var(--bat-right);
+    width: var(--bat-size); height:auto; aspect-ratio: 1.9 / 1; /* чтобы не прыгал */
+    pointer-events:none; opacity:.92;
+    filter: drop-shadow(0 0 22px rgba(255,240,140,.25))
+            drop-shadow(0 18px 35px rgba(0,0,0,.35));
+    animation: bgPulse 4s ease-in-out infinite;
+  }
+  .bat-bg img{ width:100%; height:auto; display:block }
+
+  @keyframes bgPulse{
+    0%,100%{ filter: drop-shadow(0 0 18px rgba(255,240,140,.22)) drop-shadow(0 18px 35px rgba(0,0,0,.35)) }
+    50%    { filter: drop-shadow(0 0 28px rgba(255,240,140,.36)) drop-shadow(0 22px 40px rgba(0,0,0,.38)) }
+  }
+
+  /* МАЛЕНЬКИЙ SIGNAL (показывается при золоте на 1 месте) */
+  .batsignal{
+    position:fixed; z-index:2;
+    top: var(--signal-top); right: var(--signal-right);
+    width: var(--signal-size); opacity:0; transform:translateY(-6px) scale(.98);
+    transition:.45s ease; pointer-events:none;
+    filter: drop-shadow(0 8px 22px rgba(255,240,150,.35)) brightness(1.05);
+  }
+  .batsignal.show{ opacity:.95; transform:translateY(0) scale(1) }
+  .batsignal img{ width:100%; height:auto; display:block; border-radius:6px }
+
+  .wrap{max-width:980px;margin:0 auto;padding:20px; position:relative; z-index:3}
   header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-  .title{
-    font-weight:800;letter-spacing:.5px;
-    font-size:clamp(22px,3vw,36px);
-    display:flex;align-items:center;gap:10px
-  }
-  .title img{
-    height:36px;width:36px;object-fit:contain;
-    filter: drop-shadow(0 0 6px rgba(255,255,180,.25));
-    animation:glow 3s ease-in-out infinite alternate;
-  }
-  @keyframes glow{
-    from { filter: drop-shadow(0 0 6px rgba(255,255,180,.25)); transform:translateY(0) }
-    to   { filter: drop-shadow(0 0 12px rgba(255,255,180,.55)); transform:translateY(-0.5px) }
-  }
+  .title{font-weight:900;letter-spacing:.5px;font-size:clamp(28px,4vw,56px);display:flex;align-items:center;gap:14px}
+  .title img{height:44px;width:44px;object-fit:contain;filter: drop-shadow(0 0 6px rgba(255,255,180,.22))}
   .subtitle{color:var(--muted);font-size:14px}
 
-  .grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:16px}
+  .grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:18px}
   .tile{
     display:flex;align-items:center;justify-content:space-between;
     background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0));
     border:1px solid rgba(255,255,255,.06);
-    border-radius:14px;padding:12px 14px;box-shadow:0 4px 12px rgba(0,0,0,.25)
+    border-radius:18px;padding:14px 16px;box-shadow:0 6px 20px rgba(0,0,0,.25)
   }
-  .left{display:flex;align-items:center;gap:12px;min-width:0}
-  .rank{width:36px;height:36px;border-radius:8px;display:grid;place-items:center;
-        font-weight:800;background:#0f1730;border:1px solid rgba(255,255,255,.08)}
-  .name{font-weight:700;letter-spacing:.3px;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .class{font-size:14px;color:var(--muted)}
-  .right{display:flex;align-items:center;gap:12px}
-  .score{font-weight:800;min-width:48px;text-align:right;font-size:18px}
-  .medal{font-size:24px}
-
-  .footer{margin-top:12px;display:flex;justify-content:space-between;color:#7e8aa3;font-size:12px}
+  .left{display:flex;align-items:center;gap:14px;min-width:0}
+  .rank{width:48px;height:48px;border-radius:12px;display:grid;place-items:center;
+        font-weight:800;background:#0f1730;border:1px solid rgba(255,255,255,.08);font-size:20px}
+  .name{font-weight:800;letter-spacing:.3px;font-size:26px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .class{font-size:16px;color:var(--muted);margin-top:4px}
+  .right{display:flex;align-items:center;gap:14px}
+  .score{font-weight:900;min-width:54px;text-align:right;font-size:26px}
+  .medal{font-size:26px}
+  .footer{margin-top:14px;display:flex;justify-content:space-between;color:#7e8aa3;font-size:14px}
   .blink{animation:blink 1.2s linear infinite}@keyframes blink{50%{opacity:.35}}
-
-  /* ===== Bat-Signal: теперь как картинка ===== */
-  .batsignal{
-    position: fixed; top: 18px; right: 18px; z-index: 3;
-    width: 260px; height:auto; opacity:0; transform:translateY(-6px);
-    transition: opacity .45s ease, transform .45s ease, filter .45s ease;
-    filter: drop-shadow(0 8px 22px rgba(255,240,150,.35)) brightness(1.05);
-    pointer-events:none;
-  }
-  .batsignal.show{ opacity:.95; transform:translateY(0) }
-  .batsignal img{ width:100%; height:auto; display:block; border-radius:6px }
 </style>
 </head>
 <body>
-  <!-- Bat-Signal: покажем, когда лидер — золото -->
-  <div id="batsignal" class="batsignal">
-    <!-- ЗАМЕНИ src на свой PNG/JPG с прозрачным фоном -->
-    <img id="batsignal-img" src="" alt="Bat-Signal">
-  </div>
+
+  <!-- БОЛЬШОЙ ЗАДНИЙ ЛОГОТИП -->
+  <div class="bat-bg"><img id="bat-bg-img" alt="Bat logo"></div>
+
+  <!-- МАЛЕНЬКИЙ BAT-SIGNAL (показывается при золоте сверху) -->
+  <div id="batsignal" class="batsignal"><img id="batsignal-img" alt="Bat-Signal"></div>
 
   <div class="wrap">
     <header>
       <div class="title">
-        <img src="https://avatars.mds.yandex.net/i?id=37a18b66d177292ce1441499f6fa817e8c6893ff-4275214-images-thumbs&n=13" alt="Batman">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/2/20/Batman_logo.svg" alt="Batman">
         Школьный рейтинг — Online
       </div>
       <div class="subtitle" id="status">Загрузка…</div>
@@ -107,13 +120,10 @@
 
 <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
 <script>
-  /* ===== НАСТРОЙКА КАРТИНКИ =====
-     Вариант 1: положи файл в репозиторий рядом с index.html и укажи имя:
-       const BAT_SIGNAL_IMG = "bat-signal.png";
-     Вариант 2: прямая ссылка на картинку (PNG с прозрачностью лучше):
-       const BAT_SIGNAL_IMG = "https://.../bat-signal.png";
+  /* === сюда поставь ИМЯ твоего файла (или прямую ссылку) ===
+     файл должен лежать рядом с index.html, например: bat.png
   */
-  const BAT_SIGNAL_IMG = "bat-signal.png"; // <— замени при необходимости
+  const BAT_IMG = "bat.png"; // <- поменяй на название твоего файла
 
   const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-yAedPlzSiucopAyXDGUCa4NC8sSVW1e6yxsFXksSIgxTkJhkONG6daXkg2Y8cGwaqsrffbt22_Py/pub?gid=1022445244&single=true&output=csv";
   const REFRESH_MS = 5000;
@@ -121,10 +131,16 @@
   const gridEl = document.getElementById('grid');
   const statusEl = document.getElementById('status');
   const updatedEl = document.getElementById('updated');
-  const batSignalEl = document.getElementById('batsignal');
-  const batSignalImg = document.getElementById('batsignal-img');
 
-  batSignalImg.src = BAT_SIGNAL_IMG; // подключаем твою картинку
+  // Подключаем твою картинку в обеих местах
+  const bgImg = document.getElementById('bat-bg-img');
+  const sigImg = document.getElementById('batsignal-img');
+  bgImg.referrerPolicy = 'no-referrer';
+  sigImg.referrerPolicy = 'no-referrer';
+  bgImg.src = BAT_IMG;
+  sigImg.src = BAT_IMG;
+
+  const batSignalEl = document.getElementById('batsignal');
 
   const medalOrder = { gold:0, silver:1, bronze:2, "":3 };
   function medalType(str){
@@ -142,7 +158,6 @@
       const res = await fetch(CSV_URL + '&_=' + Date.now(), {cache:'no-store'});
       if(!res.ok) throw new Error('HTTP '+res.status);
       const text = await res.text();
-
       const parsed = Papa.parse(text, { skipEmptyLines: "greedy" });
       render(parsed.data);
       statusEl.textContent = 'Обновлено';
@@ -187,7 +202,7 @@
       return a.name.localeCompare(b.name,'ru');
     });
 
-    // Bat-Signal только если лидер — ЗОЛОТО
+    // Показываем/скрываем маленький сигнал при «Золоте» лидера
     const topMedal = medalType(data[0]?.medal);
     if (topMedal === 'gold') batSignalEl.classList.add('show');
     else batSignalEl.classList.remove('show');
