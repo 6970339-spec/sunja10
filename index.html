@@ -9,12 +9,12 @@
     --bg:#0b1220; --muted:#7e8aa3; --text:#e8eefc;
     --gold:#ffd54a;
 
-    /* Настройки прожектора */
-    --disc: 64px;      /* диаметр диска-мишени в заголовке */
-    --thin: 2px;       /* толщина луча у источника (сужена) */
-    --beam: 90vw;      /* длина луча (динамическая для диагонального направления) */
-    --gap: 0px;        /* зазор между источником и лучом (убран) */
-    --sweep: 8s;       /* длительность прохода яркой полосы */
+    /* Прожектор */
+    --disc: 64px;       /* размер ДИСКА (оставил твой) */
+    --thin: 2px;        /* толщина у основания */
+    --beam: 520px;      /* длина луча */
+    --sweep: 8s;        /* скорость бегущей полосы */
+    --angle: -22deg;    /* НАКЛОН луча (наискосок вверх). Меняй под вкус: -30..-15deg */
   }
 
   html,body{height:100%}
@@ -25,9 +25,9 @@
     overflow-x:hidden;
   }
 
-  /* Силуэт города внизу (декор) */
+  /* Город — поверх луча, но под контентом */
   .city {
-    position: fixed; left:0; right:0; bottom:0; height:160px; z-index:0;
+    position: fixed; left:0; right:0; bottom:0; height:160px; z-index:1;
     background:
       linear-gradient(to top, rgba(0,0,0,.55), rgba(0,0,0,0)) 0 0/100% 100%,
       url('data:image/svg+xml;utf8,\
@@ -39,183 +39,128 @@
     opacity:.85; pointer-events:none;
   }
 
-  /* Лёгкий звездопад в пределах блока города */
-  .starfall {
-    position: absolute; top: 0; left: 0; right: 0; height: 160px; z-index: 1;
-    overflow: hidden;
-  }
-  .meteor {
-    position: absolute;
-    width: 2px; height: 2px;
-    background: linear-gradient(45deg, rgba(255,255,255,0.9), rgba(255,255,255,0.2));
-    border-radius: 50%;
-    box-shadow: 0 0 6px 1px rgba(255,255,255,0.4);
-    animation: meteorFall 4s linear infinite;
-  }
-  .meteor:nth-child(1) { left: 20%; animation-delay: 0s; }
-  .meteor:nth-child(2) { left: 50%; animation-delay: 1.5s; }
-  .meteor:nth-child(3) { left: 80%; animation-delay: 3s; }
-  @keyframes meteorFall {
-    0% {
-      transform: translate(0, -100%) rotate(45deg);
-      opacity: 1;
-    }
-    100% {
-      transform: translate(-100px, 160px) rotate(45deg);
-      opacity: 0;
-    }
-  }
+  /* Лёгкий звездопад только в зоне города */
+  .starfall{position:absolute;top:0;left:0;right:0;height:160px;z-index:1;overflow:hidden}
+  .meteor{position:absolute;width:2px;height:2px;background:linear-gradient(45deg,rgba(255,255,255,.9),rgba(255,255,255,.2));border-radius:50%;box-shadow:0 0 6px 1px rgba(255,255,255,.4);animation:meteorFall 4s linear infinite}
+  .meteor:nth-child(1){left:20%}.meteor:nth-child(2){left:50%;animation-delay:1.5s}.meteor:nth-child(3){left:80%;animation-delay:3s}
+  @keyframes meteorFall{0%{transform:translate(0,-100%) rotate(45deg);opacity:1}100%{transform:translate(-100px,160px) rotate(45deg);opacity:0}}
 
-  .wrap{max-width:800px;margin:0 auto;padding:20px; position:relative; z-index:1}
+  /* Контент поверх всего */
+  .wrap{max-width:800px;margin:0 auto;padding:20px;position:relative;z-index:2}
   header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-  .title{
-    display:flex; align-items:center; gap:10px;
-    font-weight:800; letter-spacing:.5px;
-    font-size:clamp(22px,3vw,36px);
-  }
+  .title{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.5px;font-size:clamp(22px,3vw,36px)}
   .subtitle{display:none}
-
   .grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:16px}
-  .tile{
-    display:flex;align-items:center;justify-content:space-between;
-    background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0));
-    border:1px solid rgba(255,255,255,.06);
-    border-radius:14px;padding:12px 14px;box-shadow:0 4px 12px rgba(0,0,0,.25)
-  }
+  .tile{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0));border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:12px 14px;box-shadow:0 4px 12px rgba(0,0,0,.25)}
   .left{display:flex;align-items:center;gap:12px;min-width:0}
-  .rank{width:36px;height:36px;border-radius:8px;display:grid;place-items:center;
-        font-weight:800;background:#0f1730;border:1px solid rgba(255,255,255,.08)}
+  .rank{width:36px;height:36px;border-radius:8px;display:grid;place-items:center;font-weight:800;background:#0f1730;border:1px solid rgba(255,255,255,.08)}
   .name{font-weight:700;letter-spacing:.3px;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .class{font-size:14px;color:var(--muted)}
   .right{display:flex;align-items:center;gap:12px}
   .score{font-weight:800;min-width:48px;text-align:right;font-size:18px}
   .medal{font-size:24px}
-
   .footer{margin-top:12px;display:flex;justify-content:space-between;color:#7e8aa3;font-size:12px}
 
   /* ───────────────────────────
-     Bat-Signal в заголовке (только диск)
+     Bat-Signal: ЗАДНИЙ ПЛАН. Луч идёт наискосок снизу-вверх.
      ─────────────────────────── */
   .batsignal{
-    position: relative;
+    position: fixed;
+    left: 80px;          /* подвинь при желании */
+    bottom: 150px;       /* база прячется за «городом» (высота города 160px) */
     width: calc(var(--disc) + 16px);
-    height: calc(var(--disc) + 16px);
-    display: inline-block; vertical-align: middle;
-    margin-right: 6px;
-    overflow: visible;
-    opacity: 0; transform: translateY(-4px) scale(.96);
-  }
-  .batsignal.show{
-    opacity: 1; transform: translateY(0) scale(1);
-    transition: opacity .45s ease, transform .45s ease;
-  }
-
-  .batsignal .target{
-    position: absolute;
-    left: -4px; top: 8px; width: var(--disc); height: var(--disc);
-  }
-  .batsignal .target::before{
-    content: "";
-    position: absolute; inset: 0; border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, #fff9c9 0%, #ffe58b 50%, #ffd55a 100%);
-    box-shadow: 0 0 12px 4px rgba(255, 240, 150, 0.6);
-    animation: spotPulse 2.8s ease-in-out infinite;
-  }
-  @keyframes spotPulse { 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.1) } }
-
-  .batsignal .target-img{
-    position: absolute; inset: 0;
-    width: 100%; height: 100%; object-fit: contain;
-    filter: drop-shadow(0 0 2px rgba(0,0,0,.35));
+    height: calc(var(--beam) + var(--disc) + 32px);
+    z-index: 0;          /* ПОД городом (z:1), ПЕРЕД фоном */
+    pointer-events: none;
     opacity: 1;
   }
 
-  /* ───────────────────────────
-     Луч из Готэма снизу-лева наискосок вверх
-     ─────────────────────────── */
-  .beam-origin{
-    position: fixed;
-    left: 0; bottom: 80px; /* Нижний левый угол города */
+  /* ЛУЧ (только он вращается) */
+  .batsignal .beam{
+    position:absolute;
+    bottom:0; left:50%;
     width: var(--disc);
     height: var(--beam);
-    z-index: -1; /* За городом и текстом */
-    opacity: 0; transform: translateY(4px) scale(.96);
-  }
-  .beam-origin.show{
-    opacity: 1; transform: translateY(0) scale(1);
-    transition: opacity .45s ease, transform .45s ease;
-  }
-
-  .beam-origin.on  .beam { animation: powerOn .5s ease both; }
-  .beam-origin.off .beam { animation: powerOff .5s ease both; }
-  @keyframes powerOn  { from{opacity:0; transform:scaleY(.7)} to{opacity:1; transform:scaleY(1)} }
-  @keyframes powerOff { from{opacity:1; transform:scaleY(1)} to{opacity:0; transform:scaleY(.7)} }
-
-  .beam-origin .beam{
-    position: absolute;
-    bottom: 0; left: 0;
-    width: var(--disc);
-    height: var(--beam);
-    transform: rotate(-16deg); /* Диагональ к диску (~74px, ~60px) */
     transform-origin: bottom center;
+    transform: translateX(-50%) rotate(var(--angle)); /* наискосок вверх */
+    /* Конус: тонко у основания, кверху ширина диска */
     --beam-clip: polygon(
-      calc(50% - var(--thin)) 0%,
-      calc(50% - (var(--disc)/2)) 100%,
-      calc(50% + (var(--disc)/2)) 100%,
-      calc(50% + var(--thin)) 0%
+      calc(50% - var(--thin)) 100%,
+      calc(50% + var(--thin)) 100%,
+      calc(50% + (var(--disc)/2)) 0%,
+      calc(50% - (var(--disc)/2)) 0%
     );
   }
-  .beam-origin .beam-core,
-  .beam-origin .beam-sweep,
-  .beam-origin .beam-dust{ clip-path: var(--beam-clip); }
+  .batsignal .beam-core,
+  .batsignal .beam-sweep,
+  .batsignal .beam-dust{ clip-path: var(--beam-clip); }
 
-  .beam-origin .beam-core{
-    position: absolute; inset: 0;
-    background: linear-gradient(0deg,
-                rgba(255,238,170,0) 0%,
-                rgba(255,238,170,.08) 30%,
-                rgba(255,238,170,.30) 100%);
-    filter: blur(.9px);
-    animation: coreFlicker 3.6s ease-in-out infinite, sway 9s ease-in-out infinite;
-  }
-  @keyframes coreFlicker{ 0%,100%{opacity:.93} 40%{opacity:.86} 50%{opacity:1} 60%{opacity:.9}}
-  @keyframes sway       { 0%,100%{ transform: rotate(-0.35deg)} 50%{ transform: rotate(0.35deg)} }
-
-  .beam-origin .beam-sweep{
-    position: absolute; inset: 0;
-    background:
-      linear-gradient(0deg, transparent 0%, transparent 30%, 
-                            rgba(255,245,180,.45) 40%, 
-                            rgba(255,245,180,.9) 45%, 
-                            rgba(255,245,180,.45) 50%, 
-                            transparent 60%, transparent 100%);
-    background-size: 100% 300%;
+  .batsignal .beam-core{
+    position:absolute; inset:0;
+    background: linear-gradient(180deg,
+      rgba(255,238,170,.30) 0%,
+      rgba(255,238,170,.10) 55%,
+      rgba(255,238,170,0)   100%);
     filter: blur(1px);
     mix-blend-mode: screen;
-    opacity: .65;
-    animation: sweepOneWay var(--sweep) linear infinite;
-    animation-play-state: paused;
+    animation: coreFlicker 3.6s ease-in-out infinite;
   }
-  @keyframes sweepOneWay{
-    0%   { background-position: 0 300%; }
-    100% { background-position: 0 -100%; }
-  }
-  .beam-origin.show .beam-sweep{ animation-play-state: running; }
+  @keyframes coreFlicker{0%,100%{opacity:.93}40%{opacity:.86}50%{opacity:1}60%{opacity:.9}}
 
-  .beam-origin .beam-dust{
-    position: absolute; inset: 2% 3%;
+  /* Бегущая полоса СНИЗУ ВВЕРХ вдоль луча */
+  .batsignal .beam-sweep{
+    position:absolute; inset:0;
     background:
-      radial-gradient(1.8px 1.8px at 12% 78%, rgba(255,255,210,.25) 0, rgba(255,255,210,0) 60%),
-      radial-gradient(1.8px 1.8px at 32% 60%, rgba(255,255,210,.18) 0, rgba(255,255,210,0) 60%),
-      radial-gradient(1.8px 1.8px at 56% 70%, rgba(255,255,210,.22) 0, rgba(255,255,210,0) 60%),
-      radial-gradient(1.8px 1.8px at 76% 50%, rgba(255,255,210,.16) 0, rgba(255,255,210,0) 60%);
-    filter: blur(.25px);
-    opacity: .6;
-    animation: dustDrift 9s linear infinite;
+      linear-gradient(180deg,
+        rgba(255,245,180,.95) 0%,
+        rgba(255,245,180,.45) 10%,
+        transparent 22%,
+        transparent 100%);
+    background-size: 100% 260%;
+    filter: blur(1px);
+    mix-blend-mode: screen;
+    opacity:.7;
+    animation: sweepUp var(--sweep) linear infinite; /* снизу вверх */
   }
-  @keyframes dustDrift{
-    0%   { transform: translateX(-1%) translateY(6%) }
-    100% { transform: translateX(1%) translateY(-6%) }
+  @keyframes sweepUp{
+    0%   { background-position: 0 200%; }
+    100% { background-position: 0 -60%; }
+  }
+
+  .batsignal .beam-dust{
+    position:absolute; inset:2% 6%;
+    background:
+      radial-gradient(2px 2px at 25% 70%, rgba(255,255,210,.22) 0, rgba(255,255,210,0) 60%),
+      radial-gradient(2px 2px at 55% 45%, rgba(255,255,210,.18) 0, rgba(255,255,210,0) 60%),
+      radial-gradient(2px 2px at 78% 35%, rgba(255,255,210,.20) 0, rgba(255,255,210,0) 60%),
+      radial-gradient(2px 2px at 40% 20%, rgba(255,255,210,.16) 0, rgba(255,255,210,0) 60%);
+    filter: blur(.35px);
+    opacity:.6;
+    animation: dustDrift 10s linear infinite;
+    mix-blend-mode: screen;
+  }
+  @keyframes dustDrift{0%{transform:translateX(-1%) translateY(4%)}100%{transform:translateX(1%) translateY(-4%)}}
+
+  /* ДИСК — РОВНО КАК У ТЕБЯ РАНЬШЕ (остаётся на старом месте) */
+  .batsignal .target{
+    position: absolute;
+    left: 8px;                          /* ← твоя позиция */
+    top: calc(-var(--beam) - 4px);      /* ← твоя позиция: над верхом луча по вертикали */
+    width: var(--disc); height: var(--disc);
+  }
+  .batsignal .target::before{
+    content:"";
+    position:absolute; inset:0; border-radius:50%;
+    background: radial-gradient(circle at 35% 35%, #fff9c9 0%, #ffe58b 50%, #ffd55a 100%);
+    box-shadow: 0 0 12px 4px rgba(255, 240, 150, .6);
+    animation: spotPulse 2.8s ease-in-out infinite;
+  }
+  @keyframes spotPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.08)}}
+
+  .batsignal .target-img{
+    position:absolute; inset:0; width:100%; height:100%; object-fit:contain;
+    filter: drop-shadow(0 0 2px rgba(0,0,0,.35));
+    opacity:1;
   }
 </style>
 </head>
@@ -223,14 +168,7 @@
 
   <div class="wrap">
     <header>
-      <div class="title">
-        <div id="batsignal" class="batsignal" aria-hidden="true">
-          <div class="target">
-            <img class="target-img" src="bat-signal.png" alt="bat-signal">
-          </div>
-        </div>
-        Школьный рейтинг — Online
-      </div>
+      <div class="title">Школьный рейтинг — Online</div>
       <div class="subtitle" id="status"></div>
     </header>
 
@@ -248,12 +186,17 @@
       <div class="meteor"></div>
       <div class="meteor"></div>
     </div>
-    <div id="beam-origin" class="beam-origin" aria-hidden="true">
-      <div class="beam">
-        <div class="beam-core"></div>
-        <div class="beam-sweep"></div>
-        <div class="beam-dust"></div>
-      </div>
+  </div>
+
+  <!-- Луч — задний план -->
+  <div id="batsignal" class="batsignal" aria-hidden="true">
+    <div class="beam">
+      <div class="beam-core"></div>
+      <div class="beam-sweep"></div>
+      <div class="beam-dust"></div>
+    </div>
+    <div class="target">
+      <img class="target-img" src="bat-signal.png" alt="bat-signal">
     </div>
   </div>
 
@@ -264,36 +207,6 @@
 
   const gridEl    = document.getElementById('grid');
   const updatedEl = document.getElementById('updated');
-  const batSignalEl = document.getElementById('batsignal');
-  const beamOriginEl = document.getElementById('beam-origin');
-
-  let signalOn = false;
-
-  const medalOrder = { gold:0, silver:1, bronze:2, "":3 };
-  const medalType = (str)=>{
-    const s = (str||'').toLowerCase();
-    if (s.includes('зол') || s.includes('gold')) return 'gold';
-    if (s.includes('сер') || s.includes('silver')) return 'silver';
-    if (s.includes('брон')|| s.includes('bronze')) return 'bronze';
-    return '';
-  };
-  const medalEmoji = (t)=> t==='gold'?'🥇':t==='silver'?'🥈':t==='bronze'?'🥉':'';
-
-  function powerOn(){
-    if (signalOn) return;
-    signalOn = true;
-    batSignalEl.classList.add('show');
-    beamOriginEl.classList.add('show','on');
-    beamOriginEl.classList.remove('off');
-    setTimeout(()=>beamOriginEl.classList.remove('on'), 520);
-  }
-  function powerOff(){
-    if (!signalOn) return;
-    signalOn = false;
-    batSignalEl.classList.remove('show');
-    beamOriginEl.classList.add('off');
-    setTimeout(()=>{ beamOriginEl.classList.remove('off','show'); }, 520);
-  }
 
   async function fetchCSV(){
     try{
@@ -309,11 +222,7 @@
   }
 
   function render(rows){
-    if(!rows || rows.length===0){
-      gridEl.innerHTML='';
-      powerOff();
-      return;
-    }
+    if(!rows || rows.length===0){ gridEl.innerHTML=''; return; }
 
     const header = rows[0].map(h => (h||'').toString().trim().toLowerCase());
     const hasHdr = header.some(h =>
@@ -339,18 +248,25 @@
     }).filter(r=>r.name);
 
     data.sort((a,b)=>{
-      const ma = medalType(a.medal), mb = medalType(b.medal);
-      const byM = (medalOrder[ma]??3)-(medalOrder[mb]??3); if(byM) return byM;
-      const byS = (b.score||0)-(a.score||0);               if(byS) return byS;
+      const medalOrder = { gold:0, silver:1, bronze:2, "":3 };
+      const medalType = s=>{
+        const t=(s||'').toLowerCase();
+        if(t.includes('зол')||t.includes('gold')) return 'gold';
+        if(t.includes('сер')||t.includes('silver')) return 'silver';
+        if(t.includes('брон')||t.includes('bronze')) return 'bronze';
+        return '';
+      };
+      const ma=medalType(a.medal), mb=medalType(b.medal);
+      const byM=(medalOrder[ma]??3)-(medalOrder[mb]??3); if(byM) return byM;
+      const byS=(b.score||0)-(a.score||0); if(byS) return byS;
       return a.name.localeCompare(b.name,'ru');
     });
 
-    const topMedal = medalType(data[0]?.medal);
-    if (topMedal === 'gold') powerOn(); else powerOff();
-
     gridEl.innerHTML='';
+    const medalEmoji = t=> t==='gold'?'🥇':t==='silver'?'🥈':t==='bronze'?'🥉':'';
     data.forEach((row,i)=>{
-      const t = medalType(row.medal), e = medalEmoji(t);
+      const t = ((s)=>{s=(s||'').toLowerCase(); if(s.includes('зол')||s.includes('gold'))return'gold'; if(s.includes('сер')||s.includes('silver'))return'silver'; if(s.includes('брон')||s.includes('bronze'))return'bronze'; return''})(row.medal);
+      const e = medalEmoji(t);
       const el = document.createElement('div'); el.className='tile';
       el.innerHTML = `
         <div class="left">
