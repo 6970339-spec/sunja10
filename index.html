@@ -26,7 +26,7 @@
       <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="160" viewBox="0 0 1600 160">\
         <rect width="1600" height="160" fill="%230a1326"/>\
         <path d="M0,140 h80 v-40 h40 v-60 h60 v60 h40 v-30 h40 v30 h50 v-70 h70 v70 h40 v-40 h50 v40 h60 v-90 h60 v90 h60 v-50 h40 v50 h70 v-30 h30 v30 h70 v-110 h50 v110 h80 v20 H0z" fill="%2312213f"/>\
-        <path d="M0,150 h90 v-30 h30 v-60 h40 v60 h50 v-40 h40 v40 h50 v-70 h60 v70 h40 v-30 h60 в30 h70 v-100 h40 v100 h50 v-50 h60 v50 h90 v10 H0z" fill="%23152a52"/>\
+        <path d="M0,150 h90 v-30 h30 v-60 h40 v60 h50 v-40 h40 v40 h50 v-70 h60 v70 h40 v-30 h60 v30 h70 v-100 h40 v100 h50 v-50 h60 v50 h90 v10 H0z" fill="%23152a52"/>\
       </svg>') repeat-x bottom left / cover;
     opacity:.85; pointer-events:none;
   }
@@ -60,45 +60,31 @@
   .blink{animation:blink 1.2s linear infinite}@keyframes blink{50%{opacity:.35}}
 
   /* ───────────────────────────
-     Bat-Signal в заголовке:
-     слева лампа → луч вправо → справа логотип с подсветкой
+     Bat-Signal встроенный в заголовок
      ─────────────────────────── */
   .batsignal{
-    position: relative;
-    width: 260px; height: 72px;     /* можно подстроить */
-    display:inline-block; vertical-align:middle;
+    position: relative;                 /* встроен в строку заголовка */
+    width: 150px; height: 68px;         /* компактно */
+    display: inline-block;
+    vertical-align: middle;
     margin-right: 6px;
 
-    opacity:0; transform: translateY(-4px) scale(.96);
+    opacity: 0; transform: translateY(-4px) scale(.96);
   }
   .batsignal.show{
     opacity:1; transform: translateY(0) scale(1);
     transition: opacity .45s ease, transform .45s ease;
   }
 
-  /* вкл/выкл анимации для луча */
+  /* эффекты включения/выключения */
   .batsignal.on  .beam { animation: powerOn .5s ease both;  }
   .batsignal.off .beam { animation: powerOff .5s ease both; }
   @keyframes powerOn  { from{opacity:0; transform:scaleX(.7)} to{opacity:1; transform:scaleX(1)} }
   @keyframes powerOff { from{opacity:1; transform:scaleX(1)} to{opacity:0; transform:scaleX(.7)} }
 
-  /* лампа слева */
-  .batsignal .projector{
-    position:absolute; left:0; bottom:4px;
-    width: 60px; height: 60px; object-fit:contain;
-    transform-origin: 40% 70%;
-    transform: rotate(-6deg);
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,.55));
-    animation: projectorWobble 11s ease-in-out infinite;
-  }
-  @keyframes projectorWobble{
-    0%,100%{ transform: rotate(-6deg) translateY(0) }
-    50%    { transform: rotate(-5deg) translateY(-1px) }
-  }
-
-  /* луч из лампы вправо */
+  /* луч: конус слева→вправо */
   .batsignal .beam{
-    position:absolute; left:58px; top:10px; right:64px; bottom:10px; /* оставили место под логотип справа */
+    position:absolute; left:56px; top:8px; right:0; bottom:8px;
     transform-origin: left center;
   }
   .batsignal .beam-core{
@@ -151,31 +137,72 @@
     100% { transform: translateX( 1%) translateY(-6%) }
   }
 
-  /* логотип справа + подсветка-диск позади (как фонарь) */
-  .batsignal .logo-spot{
-    position:absolute; right:0; top:8px;
-    width: 56px; height: 56px;
+  /* корпус прожектора (твоя PNG) */
+  .batsignal .projector{
+    position:absolute; left:0; bottom:2px;
+    width: 56px; height: 56px; object-fit: contain;
+    transform-origin: 40% 70%;
+    transform: rotate(-6deg);
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,.55));
+    animation: projectorWobble 11s ease-in-out infinite;
   }
-  .batsignal .logo-spot::before{
-    content:"";
-    position:absolute; inset:0; border-radius:50%;
-    background:
-      radial-gradient(circle at 35% 35%, #fff9c9 0%, #ffe58b 56%, #ffd55a 70%, rgba(0,0,0,0) 71%);
-    box-shadow:
-      0 0 24px 8px rgba(255,240,150,.35),
-      inset -8px 8px 10px rgba(0,0,0,.25);
-    animation: spotPulse 2.8s ease-in-out infinite;
-    filter: blur(.2px);
+  @keyframes projectorWobble{
+    0%,100%{ transform: rotate(-6deg) translateY(0) }
+    50%    { transform: rotate(-5deg) translateY(-1px) }
   }
-  @keyframes spotPulse { 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.1) } }
 
-  .batsignal .logo-img{
-    position:absolute; inset:0; width:100%; height:100%;
-    object-fit:contain;
-    filter: drop-shadow(0 0 2px rgba(0,0,0,.35));
-    animation: logoBreath 4s ease-in-out infinite;
+  /* ───────────────────────────
+     Анимация Бэтмена и Джокера
+     ─────────────────────────── */
+  .hero-villain {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10;
+    pointer-events: none; opacity: 0; visibility: hidden;
   }
-  @keyframes logoBreath{ 0%,100%{ transform: scale(1) rotate(-0.4deg) } 50%{ transform: scale(1.03) rotate(0.4deg) } }
+  .hero-villain.show {
+    opacity: 1; visibility: visible;
+    transition: opacity .6s ease;
+  }
+  .batman-silhouette, .joker-silhouette {
+    position: absolute; width: 120px; height: 120px;
+    filter: drop-shadow(0 8px 16px rgba(0,0,0,.8));
+  }
+  .batman-silhouette {
+    top: -100px; left: 50%; transform: translateX(-50%);
+    animation: batmanDrop 2s ease-out forwards;
+  }
+  @keyframes batmanDrop {
+    to { top: 20%; transform: translateX(-50%) rotate(5deg); }
+  }
+  .joker-silhouette {
+    bottom: -100px; right: 10%; transform: scale(0) rotate(180deg);
+    animation: jokerPop 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+  }
+  @keyframes jokerPop {
+    0% { transform: scale(0) rotate(180deg); }
+    50% { transform: scale(1.2) rotate(0deg); }
+    100% { transform: scale(1) rotate(360deg); bottom: 30%; }
+  }
+  .joker-laugh {
+    position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+    color: #00ff41; font-family: 'Courier New', monospace; font-size: 24px;
+    font-weight: bold; letter-spacing: 2px; opacity: 0;
+    animation: laughBlink 0.8s ease-in-out 1s forwards infinite 3;
+  }
+  @keyframes laughBlink {
+    0%, 100% { opacity: 0; }
+    20%, 80% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* Inline SVG для силуэтов */
+  .batman-svg {
+    width: 100%; height: 100%;
+    fill: #1a1a1a; /* Тёмный */
+  }
+  .joker-svg {
+    width: 100%; height: 100%;
+    fill: #00ff41; /* Зелёный, как у Джокера */
+  }
 </style>
 </head>
 <body>
@@ -183,19 +210,14 @@
   <div class="wrap">
     <header>
       <div class="title">
-        <!-- ВСТРОЕННЫЙ БЛОК: слева лампа, луч вправо, справа логотип с подсветкой -->
+        <!-- ВСТРОЕННЫЙ ПРОЖЕКТОР ВМЕСТО ЛОГО -->
         <div id="batsignal" class="batsignal" aria-hidden="true">
-          <img class="projector" src="bat-signal.png" alt="Projector">
           <div class="beam">
             <div class="beam-core"></div>
             <div class="beam-sweep"></div>
             <div class="beam-dust"></div>
           </div>
-          <div class="logo-spot">
-            <img class="logo-img"
-                 src="https://avatars.mds.yandex.net/i?id=37a18b66d177292ce1441499f6fa817e8c6893ff-4275214-images-thumbs&n=1"
-                 alt="Логотип">
-          </div>
+          <img class="projector" src="bat-signal.png" alt="">
         </div>
         Школьный рейтинг — Online
       </div>
@@ -210,6 +232,18 @@
     </div>
   </div>
 
+  <div id="hero-villain" class="hero-villain" aria-hidden="true">
+    <!-- Бэтмен -->
+    <svg class="batman-silhouette batman-svg" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+      <path d="M50 10 Q30 30 20 60 Q10 90 30 100 Q50 110 70 100 Q90 90 80 60 Q70 30 50 10 Z M30 40 L40 60 L50 50 L60 60 L70 40" /> <!-- Упрощённый плащ + уши -->
+    </svg>
+    <!-- Джокер -->
+    <svg class="joker-silhouette joker-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <path d="M50 20 C30 20 20 40 20 50 C20 60 30 80 50 80 C70 80 80 60 80 50 C80 40 70 20 50 20 Z M40 45 Q50 55 60 45 M30 60 Q50 70 70 60" /> <!-- Улыбка + волосы -->
+      <text class="joker-laugh" y="90">HA HA HA</text>
+    </svg>
+  </div>
+
   <div class="city" aria-hidden="true"></div>
 
 <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
@@ -221,6 +255,7 @@
   const statusEl  = document.getElementById('status');
   const updatedEl = document.getElementById('updated');
   const batSignalEl = document.getElementById('batsignal');
+  const heroVillainEl = document.getElementById('hero-villain');
 
   let signalOn = false;
 
@@ -304,7 +339,43 @@
 
     // включаем/выключаем прожектор по медали лидера
     const topMedal = medalType(data[0]?.medal);
-    if (topMedal === 'gold') powerOn(); else powerOff();
+    heroVillainEl.className = 'hero-villain'; // Сброс
+    heroVillainEl.innerHTML = ''; // Очистка
+
+    if (topMedal === 'gold') {
+      powerOn();
+      // Бэтмен для золота
+      const batman = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      batman.className = 'batman-silhouette batman-svg';
+      batman.setAttribute('viewBox', '0 0 100 120');
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', 'M50 10 Q30 30 20 60 Q10 90 30 100 Q50 110 70 100 Q90 90 80 60 Q70 30 50 10 Z M30 40 L40 60 L50 50 L60 60 L70 40');
+      batman.appendChild(path);
+      heroVillainEl.appendChild(batman);
+      setTimeout(() => heroVillainEl.classList.add('show'), 100);
+    } else if (topMedal === 'silver') {
+      powerOff();
+      // Джокер для серебра
+      const joker = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      joker.className = 'joker-silhouette joker-svg';
+      joker.setAttribute('viewBox', '0 0 100 100');
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', 'M50 20 C30 20 20 40 20 50 C20 60 30 80 50 80 C70 80 80 60 80 50 C80 40 70 20 50 20 Z M40 45 Q50 55 60 45 M30 60 Q50 70 70 60');
+      joker.appendChild(path);
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.className = 'joker-laugh';
+      text.setAttribute('y', '90');
+      text.textContent = 'HA HA HA';
+      joker.appendChild(text);
+      heroVillainEl.appendChild(joker);
+      setTimeout(() => heroVillainEl.classList.add('show'), 100);
+    } else {
+      powerOff();
+      heroVillainEl.classList.remove('show');
+    }
+
+    // Авто-скрытие через 3 сек
+    setTimeout(() => heroVillainEl.classList.remove('show'), 3000);
 
     // рендер списка
     gridEl.innerHTML='';
