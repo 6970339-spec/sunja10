@@ -9,12 +9,16 @@
     --bg:#0b1220; --muted:#7e8aa3; --text:#e8eefc; --gold:#ffd54a;
 
     /* Прожектор */
-    --disc: clamp(56px, 7vw, 96px);     /* диаметр диска */
-    --thin: 2px;                        /* толщина у основания (низ) */
-    --raise: 70px;                      /* насколько поднят верх луча и диск */
-    --beam: calc(42vh + 80px + var(--raise));  /* длина луча (основание фикс) */
-    --kiss: 1.5px;                      /* перекрытие луч ↔ диск (без щели) */
-    --sweep: 8s;                        /* период движения полосы снизу вверх */
+    --disc: clamp(56px, 7vw, 96px);      /* диаметр диска */
+    --thin: 2px;                         /* толщина у основания (низ) */
+    --raise: 70px;                       /* на сколько поднят верх луча и диск */
+    --beam: calc(42vh + 80px + var(--raise));   /* длина луча (основание фикс) */
+    --kiss: 1.5px;                       /* перекрытие луч ↔ диск (без щели) */
+
+    /* Поток */
+    --sweep: 8s;                         /* скорость потока (чем меньше, тем быстрее) */
+    --flow-period: 68px;                 /* высота одного «пакета» в потоке */
+    --top-fade: 56px;                    /* длина плавного исчезновения у диска */
   }
 
   html,body{height:100%}
@@ -33,7 +37,7 @@
       url('data:image/svg+xml;utf8,\
       <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="160" viewBox="0 0 1600 160">\
       <rect width="1600" height="160" fill="%230a1326"/>\
-      <path d="M0,140 h80 v-40 h40 v-60 h60 v60 h40 v-30 h40 v30 h50 v-70 h70 v70 h40 v-40 h50 v40 h60 v-90 h60 v90 h60 v-50 h40 v50 h70 v-30 h30 v30 х70 v-110 h50 v110 h80 v20 H0z" fill="%2312213f"/>\
+      <path d="M0,140 h80 v-40 h40 v-60 h60 v60 h40 v-30 h40 v30 h50 v-70 h70 v70 h40 v-40 h50 v40 h60 v-90 h60 v90 h60 v-50 h40 v50 h70 v-30 h30 v30 h70 v-110 h50 v110 h80 v20 H0z" fill="%2312213f"/>\
       <path d="M0,150 h90 v-30 h30 v-60 h40 v60 h50 v-40 h40 v40 h50 v-70 h60 v70 h40 v-30 h60 v30 h70 v-100 h40 v100 h50 v-50 h60 v50 h90 v10 H0z" fill="%23152a52"/>\
       </svg>') repeat-x bottom left / cover;
     opacity:.85; pointer-events:none;
@@ -84,9 +88,12 @@
       calc(50% - var(--thin)) 100%
     );
   }
-  .beam-core, .beam-sweep, .beam-dust{ clip-path: var(--beam-clip); position:absolute; inset:0; }
+  .beam-core, .beam-flow, .beam-base, .beam-dust{
+    clip-path: var(--beam-clip);
+    position:absolute; inset:0;
+  }
 
-  /* Фоновое свечение луча */
+  /* База луча (мягкий слой) */
   .beam-core{
     background: linear-gradient(180deg,
       rgba(255,238,170,.30) 0%,
@@ -97,31 +104,41 @@
   }
   @keyframes coreFlicker{0%,100%{opacity:.93}40%{opacity:.86}50%{opacity:1}60%{opacity:.9}}
 
-  /* Бесшовная полоса света: два слоя идут сдвигом → непрерывно снизу вверх */
-  .beam-sweep{ overflow:hidden; }
-  .beam-sweep::before,
-  .beam-sweep::after{
-    content:"";
-    position:absolute; left:0; right:0; height:140%;
-    background: linear-gradient(180deg,
-      rgba(255,255,210,0) 0%,
-      rgba(255,255,210,.20) 35%,
-      rgba(255,255,210,.95) 50%,
-      rgba(255,255,210,.20) 65%,
-      rgba(255,255,210,0) 100%);
+  /* Непрерывный поток: повторяющийся градиент + сдвиг фона вверх без рывков */
+  .beam-flow{
+    background: repeating-linear-gradient(
+      to top,
+      rgba(255,255,210,0)     0px,
+      rgba(255,255,210,.18)  24px,
+      rgba(255,255,210,.92)  34px,  /* яркая середина «банта» */
+      rgba(255,255,210,.18)  44px,
+      rgba(255,255,210,0)    var(--flow-period)
+    );
     filter: blur(1px);
     mix-blend-mode: screen;
-    will-change: transform;
-    transform: translateY(100%);                 /* старт СНИЗУ */
-    animation: sweepUpY var(--sweep) linear infinite;
+    background-size: 100% var(--flow-period);
+    animation: flowUp var(--sweep) linear infinite;
+    will-change: background-position;
+    /* Плавное растворение потока у диска (сверху) */
+    -webkit-mask-image: linear-gradient(to top,
+      rgba(0,0,0,1) calc(100% - var(--top-fade)),
+      rgba(0,0,0,0) 100%);
+            mask-image: linear-gradient(to top,
+      rgba(0,0,0,1) calc(100% - var(--top-fade)),
+      rgba(0,0,0,0) 100%);
   }
-  /* второй слой запущен в половину периода — перекрывает разрыв */
-  .beam-sweep::after{
-    animation-delay: calc(var(--sweep) / -2);
+  @keyframes flowUp{
+    from { background-position: 0 0; }
+    to   { background-position: 0 calc(-1 * var(--flow-period)); }
   }
-  @keyframes sweepUpY{
-    0%   { transform: translateY(100%); }        /* снизу */
-    100% { transform: translateY(-40%); }        /* уходит вверх */
+
+  /* Доп. свечение у основания — создаёт ощущение непрерывного источника снизу */
+  .beam-base{
+    background:
+      radial-gradient(120px 60px at 50% 100%, rgba(255,255,210,.45) 0%, rgba(255,255,210,0) 70%);
+    mix-blend-mode: screen;
+    opacity:.55;
+    transform: translateZ(0);
   }
 
   /* Лёгкая «пыль» в луче */
@@ -137,7 +154,7 @@
   }
   @keyframes dustDrift{0%{transform:translateX(-1%) translateY(6%)}100%{transform:translateX(1%) translateY(-6%)}}
 
-  /* ДИСК: поднят на +70px; лёгкий «обхват» нижней части (ненавязчивый) */
+  /* Диск: поднят на +70px; стык без щели; лёгкий «обхват» снизу (очень деликатный) */
   .target{
     position:absolute;
     left: 8px;
@@ -151,11 +168,11 @@
     box-shadow: 0 0 8px 3px rgba(255,240,150,.45);
     animation: spotPulse 2.8s ease-in-out infinite;
   }
-  /* едва заметный блик-серёжка снизу — «чуть обхватывает» диск */
+  /* едва заметный нижний блик: «чуть обхватывает» диск */
   .target::after{
     content:""; position:absolute; inset:-6px; border-radius:50%;
-    background: radial-gradient(120% 80% at 50% 120%, rgba(255,255,210,0) 0%, rgba(255,255,210,.22) 40%, rgba(255,255,210,0) 68%);
-    mix-blend-mode: screen; opacity:.18; filter: blur(.6px);
+    background: radial-gradient(120% 80% at 50% 120%, rgba(255,255,210,0) 0%, rgba(255,255,210,.16) 40%, rgba(255,255,210,0) 68%);
+    mix-blend-mode: screen; opacity:.16; filter: blur(.6px);
     pointer-events:none;
   }
   @keyframes spotPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.08)}}
@@ -187,11 +204,12 @@
     </div>
   </div>
 
-  <!-- Луч всегда включён; полоса света бесшовно идёт снизу вверх -->
+  <!-- Луч всегда включён; поток движется бесшовно снизу вверх и плавно тает у диска -->
   <div class="batsignal" aria-hidden="true">
     <div class="beam">
       <div class="beam-core"></div>
-      <div class="beam-sweep"></div>
+      <div class="beam-flow"></div>
+      <div class="beam-base"></div>
       <div class="beam-dust"></div>
     </div>
     <div class="target">
@@ -260,7 +278,7 @@
       }).filter(r=>r.name);
 
       data.sort((a,b)=>{
-        const ma = medalType(a.medal), mb = medalType(b.medал);
+        const ma = medalType(a.medal), mb = medalType(b.medal);
         const byM = (medalOrder[ma]??3)-(medalOrder[mb]??3);
         if(byM) return byM;
         const byS = (b.score||0)-(a.score||0);
