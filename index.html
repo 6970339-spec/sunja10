@@ -7,7 +7,7 @@
 <style>
   :root{
     --bg:#0b1220; --muted:#7e8aa3; --text:#e8eefc;
-    --gold:#ffd54a;
+    --gold:#ffd54a; --disc: 50px;
   }
   html,body{height:100%}
   body{
@@ -60,77 +60,51 @@
   .blink{animation:blink 1.2s linear infinite}@keyframes blink{50%{opacity:.35}}
 
   /* ───────────────────────────
-     Bat-Signal в заголовке:
-     слева цель (bat-signal.png + жёлтый диск), справа фонарь, луч справа→влево
+     Bat-Signal встроенный в заголовок
      ─────────────────────────── */
   .batsignal{
-    position: relative;
-    width: 260px; height: 72px;     /* можно подстроить */
-    display:inline-flex; align-items:center; gap:8px;
+    position: relative;                 /* встроен в строку заголовка */
+    width: 150px; height: 68px;         /* компактно */
+    display: inline-block;
+    vertical-align: middle;
     margin-right: 6px;
-    opacity:0; transform: translateY(-4px) scale(.96);
+
+    opacity: 0; transform: translateY(-4px) scale(.96);
   }
   .batsignal.show{
     opacity:1; transform: translateY(0) scale(1);
     transition: opacity .45s ease, transform .45s ease;
   }
 
-  /* левая "цель" — bat-signal.png + жёлтая подсветка */
-  .batsignal .target{
-    position: relative;
-    width: 56px; height: 56px; flex: 0 0 56px;
-  }
-  .batsignal .target::before{
-    content:"";
-    position:absolute; inset:0; border-radius:50%;
-    background:
-      radial-gradient(circle at 35% 35%, #fff9c9 0%, #ffe58b 56%, #ffd55a 70%, rgba(0,0,0,0) 71%);
-    box-shadow:
-      0 0 24px 8px rgba(255,240,150,.35),
-      inset -8px 8px 10px rgba(0,0,0,.25);
-    animation: spotPulse 2.8s ease-in-out infinite;
-    filter: blur(.2px);
-  }
-  .batsignal .target img{
-    position:absolute; inset:0; width:100%; height:100%; object-fit:contain;
-    filter: drop-shadow(0 0 2px rgba(0,0,0,.35));
-    animation: logoBreath 4s ease-in-out infinite;
-  }
-  @keyframes spotPulse { 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.1) } }
-  @keyframes logoBreath{ 0%,100%{ transform: scale(1) rotate(-0.4deg) } 50%{ transform: scale(1.03) rotate(0.4deg) } }
-
-  /* средняя часть — луч (справа → влево) */
-  .batsignal .beam{
-    position: relative;
-    flex: 1 1 auto;
-    height: 60px;
-  }
+  /* эффекты включения/выключения */
   .batsignal.on  .beam { animation: powerOn .5s ease both;  }
   .batsignal.off .beam { animation: powerOff .5s ease both; }
   @keyframes powerOn  { from{opacity:0; transform:scaleX(.7)} to{opacity:1; transform:scaleX(1)} }
   @keyframes powerOff { from{opacity:1; transform:scaleX(1)} to{opacity:0; transform:scaleX(.7)} }
 
-  /* тело луча, развёрнутое вправо→влево */
-  .beam-core,
-  .beam-sweep,
-  .beam-dust{
-    position:absolute; inset:0;
-    clip-path: polygon(100% 48%, 0% 18%, 0% 82%, 100% 58%); /* широкая часть у цели (слева) */
+  /* луч: конус справа→влево */
+  .batsignal .beam{
+    position:absolute; left:0; top:8px; right:56px; bottom:8px;
+    transform-origin: right center;
   }
-  .beam-core{
-    background: linear-gradient(270deg,
-                rgba(255,238,170,.30),
-                rgba(255,238,170,.08) 70%,
-                rgba(255,238,170,0) 100%);
+  .batsignal .beam-core{
+    position:absolute; inset:0;
+    clip-path: polygon(0% 18%, 100% 48%, 100% 58%, 0% 82%);
+    background: linear-gradient(90deg,
+                rgba(255,238,170,0) 0%,
+                rgba(255,238,170,.08) 30%,
+                rgba(255,238,170,.30) 100%);
     filter: blur(.9px);
     animation: coreFlicker 3.6s ease-in-out infinite, sway 9s ease-in-out infinite;
   }
   @keyframes coreFlicker{ 0%,100%{opacity:.93} 40%{opacity:.86} 50%{opacity:1} 60%{opacity:.9}}
-  @keyframes sway       { 0%,100%{ transform: rotate(0.35deg)} 50%{ transform: rotate(-0.35deg)} }
+  @keyframes sway       { 0%,100%{ transform: rotate(-0.35deg)} 50%{ transform: rotate(0.35deg)} }
 
-  .beam-sweep{
+  .batsignal .beam-sweep{
+    position:absolute; inset:0;
+    clip-path: polygon(0% 18%, 100% 48%, 100% 58%, 0% 82%);
     background:
-      linear-gradient(270deg, transparent 0%,
+      linear-gradient(90deg, transparent 0%,
                                rgba(255,245,180,.45) 10%,
                                rgba(255,245,180,.9) 13%,
                                rgba(255,245,180,.45) 16%,
@@ -138,44 +112,45 @@
     filter: blur(1px);
     mix-blend-mode: screen;
     opacity:.65;
-    animation: sweepXLeft 5.2s ease-in-out infinite;
+    animation: sweepX 5.2s ease-in-out infinite;
   }
-  @keyframes sweepXLeft{
-    0%   { background-position: 140% 0; background-size: 200% 100% }
-    50%  { background-position:  40% 0; background-size: 200% 100% }
-    100% { background-position: 140% 0; background-size: 200% 100% }
+  @keyframes sweepX{
+    0%   { background-position: -40% 0; background-size: 200% 100% }
+    50%  { background-position:  60% 0; background-size: 200% 100% }
+    100% { background-position: -40% 0; background-size: 200% 100% }
   }
 
-  .beam-dust{
+  /* bat-signal.png с желтым фоном */
+  .batsignal .beam-dust{
+    position:absolute; right:18px; top:14px;
+    width: var(--disc); height: var(--disc);
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #fff9c9 0%, #ffe58b 56%, #ffd55a 70%, rgba(0, 0, 0, 0) 71%);
+    box-shadow: 0 0 32px 10px rgba(255, 240, 150, .38), inset -10px 10px 12px rgba(0, 0, 0, .25);
+  }
+  .batsignal .beam-dust-img{
+    position:absolute; right:18px; top:14px;
+    width: var(--disc); height: var(--disc);
+    object-fit: contain;
+  }
+
+  /* корпус прожектора */
+  .batsignal .projector{
+    position:absolute; left:0; bottom:2px;
+    width: 56px; height: 56px;
+    clip-path: polygon(0% 48%, 100% 18%, 100% 82%, 0% 58%);
     background:
-      radial-gradient(1.8px 1.8px at 88% 78%, rgba(255,255,210,.25) 0, rgba(255,255,210,0) 60%),
-      radial-gradient(1.8px 1.8px at 68% 60%, rgba(255,255,210,.18) 0, rgba(255,255,210,0) 60%),
-      radial-gradient(1.8px 1.8px at 44% 70%, rgba(255,255,210,.22) 0, rgba(255,255,210,0) 60%),
-      radial-gradient(1.8px 1.8px at 24% 50%, rgba(255,255,210,.16) 0, rgba(255,255,210,0) 60%);
+      radial-gradient(1.8px 1.8px at 12% 78%, rgba(255,255,210,.25) 0, rgba(255,255,210,0) 60%),
+      radial-gradient(1.8px 1.8px at 32% 60%, rgba(255,255,210,.18) 0, rgba(255,255,210,0) 60%),
+      radial-gradient(1.8px 1.8px at 56% 70%, rgba(255,255,210,.22) 0, rgba(255,255,210,0) 60%),
+      radial-gradient(1.8px 1.8px at 76% 50%, rgba(255,255,210,.16) 0, rgba(255,255,210,0) 60%);
     filter: blur(.25px);
     opacity:.6;
-    animation: dustDriftLeft 9s linear infinite;
+    animation: dustDrift 9s linear infinite;
   }
-  @keyframes dustDriftLeft{
-    0%   { transform: translateX(1%) translateY(6%) }
-    100% { transform: translateX(-1%) translateY(-6%) }
-  }
-
-  /* правая часть — фонарь (projector) */
-  .batsignal .projector{
-    position: relative;
-    width: 56px; height: 56px; flex: 0 0 56px;
-    transform-origin: 60% 70%;
-    transform: rotate(6deg);
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,.55));
-    animation: projectorWobble 11s ease-in-out infinite;
-  }
-  .batsignal .projector img{
-    width:100%; height:100%; object-fit:contain;
-  }
-  @keyframes projectorWobble{
-    0%,100%{ transform: rotate(6deg) translateY(0) }
-    50%    { transform: rotate(5deg) translateY(-1px) }
+  @keyframes dustDrift{
+    0%   { transform: translateX(-1%) translateY(6%) }
+    100% { transform: translateX( 1%) translateY(-6%) }
   }
 </style>
 </head>
@@ -184,20 +159,15 @@
   <div class="wrap">
     <header>
       <div class="title">
-        <!-- Блок: слева цель (bat-signal.png + жёлтый диск), посередине луч, справа фонарь -->
+        <!-- ВСТРОЕННЫЙ ПРОЖЕКТОР ВМЕСТО ЛОГО -->
         <div id="batsignal" class="batsignal" aria-hidden="true">
-          <div class="target">
-            <img src="bat-signal.png" alt="Bat Signal">
-          </div>
           <div class="beam">
             <div class="beam-core"></div>
             <div class="beam-sweep"></div>
-            <div class="beam-dust"></div>
+            <div class="projector"></div>
           </div>
-          <div class="projector">
-            <!-- по твоей просьбе оставляю тот же src; можно заменить на иконку фонаря -->
-            <img src="bat-signal.png" alt="Projector">
-          </div>
+          <div class="beam-dust"></div>
+          <img class="beam-dust-img" src="bat-signal.png" alt="">
         </div>
         Школьный рейтинг — Online
       </div>
