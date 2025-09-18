@@ -13,13 +13,13 @@
   header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
   .title{font-weight:800;letter-spacing:.5px;font-size:clamp(22px,3vw,36px);display:flex;align-items:center;gap:10px}
   .title img{height:36px;width:36px;object-fit:contain}
-  .subtitle{color:#7e8aa3;font-size:clamp(12px,1.5vw,16px)}
   .grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:16px}
   .tile{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0));
         border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:12px 14px;box-shadow:0 4px 12px rgba(0,0,0,.25)}
   .left{display:flex;align-items:center;gap:12px;min-width:0}
   .rank{width:36px;height:36px;border-radius:8px;display:grid;place-items:center;font-weight:800;background:#0f1730;border:1px solid rgba(255,255,255,.08)}
   .name{font-weight:700;letter-spacing:.3px;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .class{font-size:14px;color:var(--muted)}
   .right{display:flex;align-items:center;gap:12px}
   .score{font-weight:800;min-width:48px;text-align:right;font-size:18px}
   .medal{font-size:24px}
@@ -30,12 +30,9 @@
 <body>
 <div class="wrap">
   <header>
-    <div>
-      <div class="title">
-        <img src="data:image/png;base64,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" alt="Batman">
-        Школьный рейтинг — Online
-      </div>
-      <div class="subtitle">Источник: Google Sheets (Лист2, CSV). Обновление каждые 5 секунд.</div>
+    <div class="title">
+      <img src="https://avatars.mds.yandex.net/i?id=37a18b66d177292ce1441499f6fa817e8c6893ff-4275214-images-thumbs&n=13" alt="Batman">
+      Школьный рейтинг — Online
     </div>
     <div class="subtitle" id="status">Загрузка…</div>
   </header>
@@ -88,19 +85,21 @@
     if(!rows || rows.length===0){ gridEl.innerHTML=''; return; }
 
     const header = rows[0].map(h => (h||'').toString().trim().toLowerCase());
-    const hasHdr = header.some(h => h.includes('фио')||h.includes('name')||h.includes('итого')||h.includes('score')||h.includes('медал')||h.includes('medal'));
+    const hasHdr = header.some(h => h.includes('фио')||h.includes('name')||h.includes('итого')||h.includes('score')||h.includes('медал')||h.includes('medal')||h.includes('класс'));
     const body = rows.slice(hasHdr?1:0);
 
     let idxName  = hasHdr ? header.findIndex(h=>h.includes('фио')||h.includes('name'))   : 0;
     let idxScore = hasHdr ? header.findIndex(h=>h.includes('итого')||h.includes('score')) : 1;
     let idxMedal = hasHdr ? header.findIndex(h=>h.includes('медал')||h.includes('medal')) : 2;
-    if(idxName<0) idxName=0; if(idxScore<0) idxScore=1; if(idxMedal<0) idxMedal=2;
+    let idxClass = hasHdr ? header.findIndex(h=>h.includes('класс')||h.includes('class')) : 3;
+    if(idxName<0) idxName=0; if(idxScore<0) idxScore=1; if(idxMedal<0) idxMedal=2; if(idxClass<0) idxClass=3;
 
     const data = body.map(r=>{
       const name  = (r[idxName]  ?? '').toString().trim();
       const score = parseFloat((r[idxScore] ?? '0').toString().replace(',','.')) || 0;
       const medal = (r[idxMedal] ?? '').toString().trim();
-      return { name, score: Math.round(score), medal };
+      const klass = (r[idxClass] ?? '').toString().trim();
+      return { name, score: Math.round(score), medal, klass };
     }).filter(r=>r.name);
 
     data.sort((a,b)=>{
@@ -117,7 +116,10 @@
       el.innerHTML = `
         <div class="left">
           <div class="rank">${i+1}</div>
-          <div class="name">${e?e+' ':''}${row.name}</div>
+          <div>
+            <div class="name">${e?e+' ':''}${row.name}</div>
+            ${row.klass ? `<div class="class">Класс: ${row.klass}</div>` : ""}
+          </div>
         </div>
         <div class="right">
           ${e?`<div class="medal" data-type="${t}">${e}</div>`:''}
@@ -132,6 +134,3 @@
 </script>
 </body>
 </html>
-
-
-
