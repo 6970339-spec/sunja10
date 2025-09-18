@@ -64,7 +64,7 @@
      ─────────────────────────── */
   .batsignal{
     position: relative;                 /* встроен в строку заголовка */
-    width: 150px; height: 68px;         /* компактно */
+    width: 200px; height: 68px;         /* удлинено для луча */
     display: inline-block;
     vertical-align: middle;
     margin-right: 6px;
@@ -72,7 +72,7 @@
 
   /* луч: конус слева→вправо */
   .batsignal .beam{
-    position:absolute; left:0; top:8px; right:0; bottom:8px;
+    position:absolute; left:52px; top:8px; right:0; bottom:8px;
     transform-origin: left center;
     opacity: 0;
     transform: scaleX(.7);
@@ -136,6 +136,23 @@
   .batsignal.active .beam-dust-img {
     opacity: 1;
   }
+
+  /* Маленький силуэт Готэма в начале луча */
+  .batsignal .gotham-silhouette {
+    position: absolute; left: 0; top: 8px;
+    width: var(--disc); height: var(--disc);
+    background: url('data:image/svg+xml;utf8,\
+      <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">\
+        <rect width="100" height="100" fill="%230a1326"/>\
+        <path d="M0,90 h10 v-20 h10 v-30 h10 v30 h10 v-15 h10 v15 h10 v-35 h10 v35 h10 v-25 h10 v25 h10 v-10 h10 v10 H0z" fill="%2312213f"/>\
+        <path d="M0,95 h15 v-15 h10 v-25 h10 v25 h10 v-20 h10 v20 h10 v-30 h10 v30 h10 v-15 h5 v15 H0z" fill="%23152a52"/>\
+      </svg>') no-repeat center / contain;
+    opacity: 0.6;
+    transition: opacity .45s ease;
+  }
+  .batsignal.active .gotham-silhouette {
+    opacity: 0.8;
+  }
 </style>
 </head>
 <body>
@@ -145,6 +162,7 @@
       <div class="title">
         <!-- ВСТРОЕННЫЙ ПРОЖЕКТОР ВМЕСТО ЛОГО -->
         <div id="batsignal" class="batsignal" aria-hidden="true">
+          <div class="gotham-silhouette"></div>
           <div class="beam">
             <div class="beam-core"></div>
             <div class="beam-sweep"></div>
