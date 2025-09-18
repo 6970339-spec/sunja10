@@ -7,14 +7,9 @@
 <style>
   :root{
     --bg:#0b1220; --muted:#7e8aa3; --text:#e8eefc;
-    /* Позиции и размеры твоей картинки (фон и сигнал) */
-    --bat-size: 520px;     /* большой задний логотип */
-    --bat-top:  -10px;
-    --bat-right: -40px;
-
-    --signal-size: 260px;  /* маленький Bat-Signal */
-    --signal-top:  22px;
-    --signal-right: 18px;
+    /* настраиваемые размеры/позиции логотипов */
+    --bat-size: 520px; --bat-top:-10px; --bat-right:-40px;
+    --signal-size: 260px; --signal-top:22px; --signal-right:18px;
   }
   html,body{height:100%}
   body{
@@ -24,7 +19,7 @@
     overflow-x:hidden;
   }
 
-  /* Ночной город (низ) */
+  /* город внизу */
   .city{
     position:fixed; left:0; right:0; bottom:0; height:160px; z-index:0;
     background:
@@ -38,32 +33,26 @@
     opacity:.85; pointer-events:none;
   }
 
-  /* БОЛЬШОЙ ЗАДНИЙ ЛОГОТИП (твоя картинка) */
+  /* большой задний логотип */
   .bat-bg{
     position:fixed; z-index:1;
-    top: var(--bat-top); right: var(--bat-right);
-    width: var(--bat-size); height:auto; aspect-ratio: 1.9 / 1; /* чтобы не прыгал */
-    pointer-events:none; opacity:.92;
+    top:var(--bat-top); right:var(--bat-right);
+    width:var(--bat-size); opacity:.92;
     filter: drop-shadow(0 0 22px rgba(255,240,140,.25))
             drop-shadow(0 18px 35px rgba(0,0,0,.35));
-    animation: bgPulse 4s ease-in-out infinite;
+    pointer-events:none;
   }
   .bat-bg img{ width:100%; height:auto; display:block }
 
-  @keyframes bgPulse{
-    0%,100%{ filter: drop-shadow(0 0 18px rgba(255,240,140,.22)) drop-shadow(0 18px 35px rgba(0,0,0,.35)) }
-    50%    { filter: drop-shadow(0 0 28px rgba(255,240,140,.36)) drop-shadow(0 22px 40px rgba(0,0,0,.38)) }
-  }
-
-  /* МАЛЕНЬКИЙ SIGNAL (показывается при золоте на 1 месте) */
+  /* маленький «сигнал» (покажем при золоте на 1 месте) */
   .batsignal{
     position:fixed; z-index:2;
-    top: var(--signal-top); right: var(--signal-right);
-    width: var(--signal-size); opacity:0; transform:translateY(-6px) scale(.98);
+    top:var(--signal-top); right:var(--signal-right);
+    width:var(--signal-size); opacity:0; transform:translateY(-6px);
     transition:.45s ease; pointer-events:none;
     filter: drop-shadow(0 8px 22px rgba(255,240,150,.35)) brightness(1.05);
   }
-  .batsignal.show{ opacity:.95; transform:translateY(0) scale(1) }
+  .batsignal.show{ opacity:.95; transform:translateY(0) }
   .batsignal img{ width:100%; height:auto; display:block; border-radius:6px }
 
   .wrap{max-width:980px;margin:0 auto;padding:20px; position:relative; z-index:3}
@@ -93,10 +82,9 @@
 </head>
 <body>
 
-  <!-- БОЛЬШОЙ ЗАДНИЙ ЛОГОТИП -->
+  <!-- задний логотип -->
   <div class="bat-bg"><img id="bat-bg-img" alt="Bat logo"></div>
-
-  <!-- МАЛЕНЬКИЙ BAT-SIGNAL (показывается при золоте сверху) -->
+  <!-- маленький сигнал -->
   <div id="batsignal" class="batsignal"><img id="batsignal-img" alt="Bat-Signal"></div>
 
   <div class="wrap">
@@ -120,10 +108,11 @@
 
 <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
 <script>
-  /* === сюда поставь ИМЯ твоего файла (или прямую ссылку) ===
-     файл должен лежать рядом с index.html, например: bat.png
-  */
-  const BAT_IMG = "bat.png"; // <- поменяй на название твоего файла
+  /* 1) УКАЖИ ИМЯ ТВОЕГО ФАЙЛА (который загрузил в репозиторий) */
+  const BAT_IMG_LOCAL = "bat.png";   // ← Переименуй под свой файл, например "logo.png"
+
+  /* 2) Надёжный запасной вариант (если локальный не найдётся) */
+  const BAT_IMG_FALLBACK = "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Batman_Symbol.svg/512px-Batman_Symbol.svg.png";
 
   const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-yAedPlzSiucopAyXDGUCa4NC8sSVW1e6yxsFXksSIgxTkJhkONG6daXkg2Y8cGwaqsrffbt22_Py/pub?gid=1022445244&single=true&output=csv";
   const REFRESH_MS = 5000;
@@ -131,23 +120,30 @@
   const gridEl = document.getElementById('grid');
   const statusEl = document.getElementById('status');
   const updatedEl = document.getElementById('updated');
-
-  // Подключаем твою картинку в обеих местах
-  const bgImg = document.getElementById('bat-bg-img');
-  const sigImg = document.getElementById('batsignal-img');
-  bgImg.referrerPolicy = 'no-referrer';
-  sigImg.referrerPolicy = 'no-referrer';
-  bgImg.src = BAT_IMG;
-  sigImg.src = BAT_IMG;
-
   const batSignalEl = document.getElementById('batsignal');
+
+  // подключаем картинку (локальная -> fallback)
+  (function initImages(){
+    var bg = document.getElementById('bat-bg-img');
+    var sg = document.getElementById('batsignal-img');
+    bg.referrerPolicy = 'no-referrer';
+    sg.referrerPolicy = 'no-referrer';
+
+    // сначала пробуем локальный файл в репозитории
+    bg.src = BAT_IMG_LOCAL;
+    sg.src = BAT_IMG_LOCAL;
+
+    // если не загрузился — ставим fallback
+    bg.onerror = function(){ bg.onerror=null; bg.src = BAT_IMG_FALLBACK; };
+    sg.onerror = function(){ sg.onerror=null; sg.src = BAT_IMG_FALLBACK; };
+  })();
 
   const medalOrder = { gold:0, silver:1, bronze:2, "":3 };
   function medalType(str){
-    const s = (str||'').toLowerCase();
-    if (s.includes('зол') || s.includes('gold')) return 'gold';
-    if (s.includes('сер') || s.includes('silver')) return 'silver';
-    if (s.includes('брон')|| s.includes('bronze')) return 'bronze';
+    var s = (str||'').toLowerCase();
+    if (s.indexOf('зол')>-1 || s.indexOf('gold')>-1) return 'gold';
+    if (s.indexOf('сер')>-1 || s.indexOf('silver')>-1) return 'silver';
+    if (s.indexOf('брон')>-1|| s.indexOf('bronze')>-1) return 'bronze';
     return '';
   }
   function medalEmoji(type){ return type==='gold'?'🥇':type==='silver'?'🥈':type==='bronze'?'🥉':''; }
@@ -155,74 +151,76 @@
   async function fetchCSV(){
     try{
       statusEl.innerHTML = 'Обновление… <span class="blink">●</span>';
-      const res = await fetch(CSV_URL + '&_=' + Date.now(), {cache:'no-store'});
+      var res = await fetch(CSV_URL + '&_=' + Date.now(), {cache:'no-store'});
       if(!res.ok) throw new Error('HTTP '+res.status);
-      const text = await res.text();
-      const parsed = Papa.parse(text, { skipEmptyLines: "greedy" });
+      var text = await res.text();
+      var parsed = Papa.parse(text, { skipEmptyLines: "greedy" });
       render(parsed.data);
       statusEl.textContent = 'Обновлено';
       updatedEl.textContent = 'Время: ' + new Date().toLocaleTimeString();
     }catch(e){
-      statusEl.textContent = 'Ошибка загрузки CSV';
       console.error(e);
+      statusEl.textContent = 'Ошибка загрузки CSV';
     }
   }
 
   function render(rows){
-    if(!rows || rows.length===0){ gridEl.innerHTML=''; batSignalEl.classList.remove('show'); return; }
+    if(!rows || !rows.length){
+      gridEl.innerHTML = '';
+      batSignalEl.classList.remove('show');
+      return;
+    }
+    var header = rows[0].map(function(h){ return (h||'').toString().trim().toLowerCase(); });
+    var hasHdr = header.some(function(h){
+      return h.indexOf('фио')>-1 || h.indexOf('name')>-1 ||
+             h.indexOf('итого')>-1 || h.indexOf('score')>-1 ||
+             h.indexOf('медал')>-1 || h.indexOf('medal')>-1 ||
+             h.indexOf('класс')>-1 || h.indexOf('class')>-1;
+    });
+    var body = rows.slice(hasHdr?1:0);
 
-    const header = rows[0].map(h => (h||'').toString().trim().toLowerCase());
-    const hasHdr = header.some(h =>
-      h.includes('фио')||h.includes('name')||
-      h.includes('итого')||h.includes('score')||
-      h.includes('медал')||h.includes('medal')||
-      h.includes('класс')||h.includes('class')
-    );
-    const body = rows.slice(hasHdr?1:0);
-
-    let idxName  = hasHdr ? header.findIndex(h=>h.includes('фио')||h.includes('name'))   : 0;
-    let idxScore = hasHdr ? header.findIndex(h=>h.includes('итого')||h.includes('score')) : 1;
-    let idxMedal = hasHdr ? header.findIndex(h=>h.includes('медал')||h.includes('medal')) : 2;
-    let idxClass = hasHdr ? header.findIndex(h=>h.includes('класс')||h.includes('class')) : 3;
+    var idxName  = hasHdr ? header.findIndex(h=>h.indexOf('фио')>-1 || h.indexOf('name')>-1)   : 0;
+    var idxScore = hasHdr ? header.findIndex(h=>h.indexOf('итого')>-1 || h.indexOf('score')>-1) : 1;
+    var idxMedal = hasHdr ? header.findIndex(h=>h.indexOf('медал')>-1 || h.indexOf('medal')>-1) : 2;
+    var idxClass = hasHdr ? header.findIndex(h=>h.indexOf('класс')>-1 || h.indexOf('class')>-1) : 3;
     if(idxName<0) idxName=0; if(idxScore<0) idxScore=1; if(idxMedal<0) idxMedal=2; if(idxClass<0) idxClass=3;
 
-    const data = body.map(r=>{
-      const name  = (r[idxName]  ?? '').toString().trim();
-      const score = parseFloat((r[idxScore] ?? '0').toString().replace(',','.')) || 0;
-      const medal = (r[idxMedal] ?? '').toString().trim();
-      const klass = (r[idxClass] ?? '').toString().trim();
-      return { name, score: Math.round(score), medal, klass };
-    }).filter(r=>r.name);
+    var data = body.map(function(r){
+      var name  = (r[idxName]  || '').toString().trim();
+      var score = parseFloat((r[idxScore] || '0').toString().replace(',','.')) || 0;
+      var medal = (r[idxMedal] || '').toString().trim();
+      var klass = (r[idxClass] || '').toString().trim();
+      return { name:name, score:Math.round(score), medal:medal, klass:klass };
+    }).filter(function(r){ return r.name; });
 
-    // Сортировка: 🥇 → 🥈 → 🥉 → очки ↓ → ФИО ↑
-    data.sort((a,b)=>{
-      const ma = medalType(a.medal), mb = medalType(b.medal);
-      const byM = (medalOrder[ma]??3)-(medalOrder[mb]??3); if(byM) return byM;
-      const byS = (b.score||0)-(a.score||0);               if(byS) return byS;
+    data.sort(function(a,b){
+      var ma = medalType(a.medal), mb = medalType(b.medal);
+      var byM = (medalOrder[ma]||3) - (medalOrder[mb]||3); if(byM) return byM;
+      var byS = (b.score||0) - (a.score||0);               if(byS) return byS;
       return a.name.localeCompare(b.name,'ru');
     });
 
-    // Показываем/скрываем маленький сигнал при «Золоте» лидера
-    const topMedal = medalType(data[0]?.medal);
-    if (topMedal === 'gold') batSignalEl.classList.add('show');
+    // показать/скрыть сигнал
+    var top = data.length ? data[0] : null;
+    if(top && medalType(top.medal)==='gold') batSignalEl.classList.add('show');
     else batSignalEl.classList.remove('show');
 
-    gridEl.innerHTML='';
-    data.forEach((row,i)=>{
-      const t = medalType(row.medal), e = medalEmoji(t);
-      const el = document.createElement('div'); el.className='tile';
-      el.innerHTML = `
-        <div class="left">
-          <div class="rank">${i+1}</div>
-          <div>
-            <div class="name">${e?e+' ':''}${row.name}</div>
-            ${row.klass ? `<div class="class">Класс: ${row.klass}</div>` : ""}
-          </div>
-        </div>
-        <div class="right">
-          ${e?`<div class="medal" data-type="${t}">${e}</div>`:''}
-          <div class="score">${row.score}</div>
-        </div>`;
+    gridEl.innerHTML = '';
+    data.forEach(function(row,i){
+      var t = medalType(row.medal), e = medalEmoji(t);
+      var el = document.createElement('div'); el.className='tile';
+      el.innerHTML =
+        '<div class="left">' +
+          '<div class="rank">'+(i+1)+'</div>' +
+          '<div>' +
+            '<div class="name">'+(e?e+' ':'')+row.name+'</div>' +
+            (row.klass ? '<div class="class">Класс: '+row.klass+'</div>' : '') +
+          '</div>' +
+        '</div>' +
+        '<div class="right">' +
+          (e?'<div class="medal" data-type="'+t+'">'+e+'</div>':'') +
+          '<div class="score">'+row.score+'</div>' +
+        '</div>';
       gridEl.appendChild(el);
     });
   }
