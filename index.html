@@ -9,10 +9,11 @@
     --bg:#0b1220; --muted:#7e8aa3; --text:#e8eefc;
     --gold:#ffd54a;
 
-    /* Настройки прожектора (снизу-вверх) */
-    --disc: 84px;      /* диаметр диска-мишени наверху (увеличил и сделал полноценным) */
-    --thin: 3px;       /* толщина луча у источника (у основания в городе) */
-    --beam: 520px;     /* длина луча вверх */
+    /* Настройки прожектора */
+    --disc: 64px;      /* диаметр диска-мишени в заголовке */
+    --thin: 2px;       /* толщина луча у источника (сужена) */
+    --beam: 80vh;      /* длина луча (динамическая для вертикального направления) */
+    --gap: 0px;        /* зазор между источником и лучом (убран) */
     --sweep: 8s;       /* длительность прохода яркой полосы */
   }
 
@@ -24,28 +25,28 @@
     overflow-x:hidden;
   }
 
-  /* Силуэт города внизу (декор) — поверх луча, но под контентом */
+  /* Силуэт города внизу (декор) */
   .city {
-    position: fixed; left:0; right:0; bottom:0; height:160px;
-    z-index: 1;
+    position: fixed; left:0; right:0; bottom:0; height:160px; z-index:0;
     background:
       linear-gradient(to top, rgba(0,0,0,.55), rgba(0,0,0,0)) 0 0/100% 100%,
       url('data:image/svg+xml;utf8,\
       <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="160" viewBox="0 0 1600 160">\
         <rect width="1600" height="160" fill="%230a1326"/>\
-        <path d="M0,140 h80 v-40 h40 v-60 h60 v60 h40 v-30 h40 v30 h50 v-70 h70 v70 h40 v-40 h50 в40 h60 v-90 h60 v90 h60 v-50 h40 v50 h70 v-30 h30 v30 h70 v-110 h50 v110 h80 v20 H0z" fill="%2312213f"/>\
+        <path d="M0,140 h80 v-40 h40 v-60 h60 v60 h40 v-30 h40 v30 h50 v-70 h70 v70 h40 v-40 h50 v40 h60 v-90 h60 v90 h60 v-50 h40 v50 h70 v-30 h30 v30 h70 v-110 h50 v110 h80 v20 H0z" fill="%2312213f"/>\
         <path d="M0,150 h90 v-30 h30 v-60 h40 v60 h50 v-40 h40 v40 h50 v-70 h60 v70 h40 v-30 h60 v30 h70 v-100 h40 v100 h50 v-50 h60 v50 h90 v10 H0z" fill="%23152a52"/>\
       </svg>') repeat-x bottom left / cover;
     opacity:.85; pointer-events:none;
   }
 
-  /* Звездопад — только в пределах города */
+  /* Лёгкий звездопад в пределах блока города */
   .starfall {
     position: absolute; top: 0; left: 0; right: 0; height: 160px; z-index: 1;
-    overflow: hidden; pointer-events:none;
+    overflow: hidden;
   }
   .meteor {
-    position: absolute; width: 2px; height: 2px;
+    position: absolute;
+    width: 2px; height: 2px;
     background: linear-gradient(45deg, rgba(255,255,255,0.9), rgba(255,255,255,0.2));
     border-radius: 50%;
     box-shadow: 0 0 6px 1px rgba(255,255,255,0.4);
@@ -55,14 +56,23 @@
   .meteor:nth-child(2) { left: 50%; animation-delay: 1.5s; }
   .meteor:nth-child(3) { left: 80%; animation-delay: 3s; }
   @keyframes meteorFall {
-    0%   { transform: translate(0, -100%) rotate(45deg); opacity: 1; }
-    100% { transform: translate(-100px, 160px) rotate(45deg); opacity: 0; }
+    0% {
+      transform: translate(0, -100%) rotate(45deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translate(-100px, 160px) rotate(45deg);
+      opacity: 0;
+    }
   }
 
-  /* Контент поверх всего */
-  .wrap{max-width:800px;margin:0 auto;padding:20px; position:relative; z-index:2}
+  .wrap{max-width:800px;margin:0 auto;padding:20px; position:relative; z-index:1}
   header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-  .title{display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.5px; font-size:clamp(22px,3vw,36px);}
+  .title{
+    display:flex; align-items:center; gap:10px;
+    font-weight:800; letter-spacing:.5px;
+    font-size:clamp(22px,3vw,36px);
+  }
   .subtitle{display:none}
 
   .grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:16px}
@@ -80,117 +90,38 @@
   .right{display:flex;align-items:center;gap:12px}
   .score{font-weight:800;min-width:48px;text-align:right;font-size:18px}
   .medal{font-size:24px}
+
   .footer{margin-top:12px;display:flex;justify-content:space-between;color:#7e8aa3;font-size:12px}
 
   /* ───────────────────────────
-     Bat-Signal снизу вверх, ЗАДНИЙ ПЛАН
+     Bat-Signal в заголовке (только диск)
      ─────────────────────────── */
   .batsignal{
-    position: fixed;
-    left: 80px;
-    /* ставим источник ровно от «крыши» города (160px высота) + небольшой запас внутрь, чтобы база скрывалась */
-    bottom: 150px;
-    width: max(var(--disc), 220px);
-    height: calc(var(--beam) + var(--disc) + 32px);
-    z-index: 0;              /* за городом? нет — ПОД городом (город z=1), НО перед фоном */
-    pointer-events: none;    /* чтобы не мешал кликам */
-    opacity: 0; transform: translateY(4px) scale(.98);
+    position: relative;
+    width: calc(var(--disc) + 16px);
+    height: calc(var(--disc) + 16px);
+    display: inline-block; vertical-align: middle;
+    margin-right: 6px;
+    overflow: visible;
+    opacity: 0; transform: translateY(-4px) scale(.96);
   }
   .batsignal.show{
     opacity: 1; transform: translateY(0) scale(1);
     transition: opacity .45s ease, transform .45s ease;
   }
 
-  .batsignal.on  .beam { animation: powerOn .45s ease both; }
-  .batsignal.off .beam { animation: powerOff .45s ease both; }
-  @keyframes powerOn  { from{opacity:0; transform:scaleY(.85)} to{opacity:1; transform:scaleY(1)} }
-  @keyframes powerOff { from{opacity:1; transform:scaleY(1)}  to{opacity:0; transform:scaleY(.85)} }
-
-  .batsignal .beam{
-    position: absolute;
-    left: 50%;
-    bottom: 0;              /* база луча у города */
-    width: var(--disc);     /* ширина контейнера равна диску, сам конус режется clip-path */
-    height: var(--beam);
-    transform: translateX(-50%);  /* центрируем по X */
-    /* Вертикальный конус (тонко у базы, расширяется до ширины диска вверху) */
-    --beam-clip: polygon(
-      calc(50% - var(--thin)) 100%,
-      calc(50% + var(--thin)) 100%,
-      calc(50% + (var(--disc)/2)) 0%,
-      calc(50% - (var(--disc)/2)) 0%
-    );
-  }
-  .batsignal .beam-core,
-  .batsignal .beam-sweep,
-  .batsignal .beam-dust{ clip-path: var(--beam-clip); }
-
-  .batsignal .beam-core{
-    position: absolute; inset: 0;
-    background: linear-gradient(180deg,
-                rgba(255,238,170,.30) 0%,
-                rgba(255,238,170,.10) 55%,
-                rgba(255,238,170,0)   100%);
-    filter: blur(1px);
-    mix-blend-mode: screen;
-    animation: coreFlicker 3.6s ease-in-out infinite;
-  }
-  @keyframes coreFlicker{ 0%,100%{opacity:.93} 40%{opacity:.86} 50%{opacity:1} 60%{opacity:.9}}
-
-  .batsignal .beam-sweep{
-    position: absolute; inset: 0;
-    background:
-      linear-gradient(180deg, 
-        rgba(255,245,180,.9) 0%,
-        rgba(255,245,180,.45) 8%,
-        transparent 18%,
-        transparent 100%);
-    background-size: 100% 260%;
-    filter: blur(1px);
-    mix-blend-mode: screen;
-    opacity:.7;
-    animation: sweepUp var(--sweep) linear infinite;
-    animation-play-state: paused; /* запускаем только когда .show */
-  }
-  @keyframes sweepUp{
-    0%   { background-position: 0 200%; }
-    100% { background-position: 0 -60%; }
-  }
-  .batsignal.show .beam-sweep{ animation-play-state: running; }
-
-  .batsignal .beam-dust{
-    position: absolute; inset: 2% 6%;
-    background:
-      radial-gradient(2px 2px at 25% 70%, rgba(255,255,210,.22) 0, rgba(255,255,210,0) 60%),
-      radial-gradient(2px 2px at 55% 45%, rgba(255,255,210,.18) 0, rgba(255,255,210,0) 60%),
-      radial-gradient(2px 2px at 78% 35%, rgba(255,255,210,.20) 0, rgba(255,255,210,0) 60%),
-      radial-gradient(2px 2px at 40% 20%, rgba(255,255,210,.16) 0, rgba(255,255,210,0) 60%);
-    filter: blur(.35px);
-    opacity: .6;
-    animation: dustDrift 10s linear infinite;
-    mix-blend-mode: screen;
-  }
-  @keyframes dustDrift{
-    0%   { transform: translateX(-1%) translateY(4%) }
-    100% { transform: translateX(1%)  translateY(-4%) }
-  }
-
-  /* Полноценный диск-мишень, чуть «заходит» в луч */
   .batsignal .target{
     position: absolute;
-    left: 50%;
-    bottom: calc(var(--beam) - 4px);   /* небольшой заход в луч */
-    width: var(--disc); height: var(--disc);
-    transform: translateX(-50%);
+    left: -4px; top: 8px; width: var(--disc); height: var(--disc);
   }
   .batsignal .target::before{
     content: "";
     position: absolute; inset: 0; border-radius: 50%;
     background: radial-gradient(circle at 35% 35%, #fff9c9 0%, #ffe58b 50%, #ffd55a 100%);
-    box-shadow: 0 0 16px 6px rgba(255, 240, 150, 0.6);
+    box-shadow: 0 0 12px 4px rgba(255, 240, 150, 0.6);
     animation: spotPulse 2.8s ease-in-out infinite;
   }
-  @keyframes spotPulse { 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.08) } }
+  @keyframes spotPulse { 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.1) } }
 
   .batsignal .target-img{
     position: absolute; inset: 0;
@@ -198,13 +129,108 @@
     filter: drop-shadow(0 0 2px rgba(0,0,0,.35));
     opacity: 1;
   }
+
+  /* ───────────────────────────
+     Луч из Готэма снизу вверх
+     ─────────────────────────── */
+  .beam-origin{
+    position: fixed;
+    left: 74px; bottom: 80px; /* Выравнивание с диском в заголовке */
+    width: var(--disc);
+    height: var(--beam);
+    z-index: -1; /* За городом и текстом */
+    opacity: 0; transform: translateY(4px) scale(.96);
+  }
+  .beam-origin.show{
+    opacity: 1; transform: translateY(0) scale(1);
+    transition: opacity .45s ease, transform .45s ease;
+  }
+
+  .beam-origin.on  .beam { animation: powerOn .5s ease both; }
+  .beam-origin.off .beam { animation: powerOff .5s ease both; }
+  @keyframes powerOn  { from{opacity:0; transform:scaleY(.7)} to{opacity:1; transform:scaleY(1)} }
+  @keyframes powerOff { from{opacity:1; transform:scaleY(1)} to{opacity:0; transform:scaleY(.7)} }
+
+  .beam-origin .beam{
+    position: absolute;
+    bottom: 0; left: 0;
+    width: var(--disc);
+    height: var(--beam);
+    transform: rotate(-90deg);
+    transform-origin: bottom center;
+    --beam-clip: polygon(
+      calc(50% - var(--thin)) 0%,
+      calc(50% - (var(--disc)/2)) 100%,
+      calc(50% + (var(--disc)/2)) 100%,
+      calc(50% + var(--thin)) 0%
+    );
+  }
+  .beam-origin .beam-core,
+  .beam-origin .beam-sweep,
+  .beam-origin .beam-dust{ clip-path: var(--beam-clip); }
+
+  .beam-origin .beam-core{
+    position: absolute; inset: 0;
+    background: linear-gradient(0deg,
+                rgba(255,238,170,0) 0%,
+                rgba(255,238,170,.08) 30%,
+                rgba(255,238,170,.30) 100%);
+    filter: blur(.9px);
+    animation: coreFlicker 3.6s ease-in-out infinite, sway 9s ease-in-out infinite;
+  }
+  @keyframes coreFlicker{ 0%,100%{opacity:.93} 40%{opacity:.86} 50%{opacity:1} 60%{opacity:.9}}
+  @keyframes sway       { 0%,100%{ transform: rotate(-0.35deg)} 50%{ transform: rotate(0.35deg)} }
+
+  .beam-origin .beam-sweep{
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(0deg, transparent 0%, transparent 30%, 
+                            rgba(255,245,180,.45) 40%, 
+                            rgba(255,245,180,.9) 45%, 
+                            rgba(255,245,180,.45) 50%, 
+                            transparent 60%, transparent 100%);
+    background-size: 100% 300%;
+    filter: blur(1px);
+    mix-blend-mode: screen;
+    opacity: .65;
+    animation: sweepOneWay var(--sweep) linear infinite;
+    animation-play-state: paused;
+  }
+  @keyframes sweepOneWay{
+    0%   { background-position: 0 300%; }
+    100% { background-position: 0 -100%; }
+  }
+  .beam-origin.show .beam-sweep{ animation-play-state: running; }
+
+  .beam-origin .beam-dust{
+    position: absolute; inset: 2% 3%;
+    background:
+      radial-gradient(1.8px 1.8px at 12% 78%, rgba(255,255,210,.25) 0, rgba(255,255,210,0) 60%),
+      radial-gradient(1.8px 1.8px at 32% 60%, rgba(255,255,210,.18) 0, rgba(255,255,210,0) 60%),
+      radial-gradient(1.8px 1.8px at 56% 70%, rgba(255,255,210,.22) 0, rgba(255,255,210,0) 60%),
+      radial-gradient(1.8px 1.8px at 76% 50%, rgba(255,255,210,.16) 0, rgba(255,255,210,0) 60%);
+    filter: blur(.25px);
+    opacity: .6;
+    animation: dustDrift 9s linear infinite;
+  }
+  @keyframes dustDrift{
+    0%   { transform: translateX(-1%) translateY(6%) }
+    100% { transform: translateX(1%) translateY(-6%) }
+  }
 </style>
 </head>
 <body>
 
   <div class="wrap">
     <header>
-      <div class="title">Школьный рейтинг — Online</div>
+      <div class="title">
+        <div id="batsignal" class="batsignal" aria-hidden="true">
+          <div class="target">
+            <img class="target-img" src="bat-signal.png" alt="bat-signal">
+          </div>
+        </div>
+        Школьный рейтинг — Online
+      </div>
       <div class="subtitle" id="status"></div>
     </header>
 
@@ -222,18 +248,12 @@
       <div class="meteor"></div>
       <div class="meteor"></div>
     </div>
-  </div>
-
-  <!-- ЛУЧ: задний план (z=0), НЕ мешает кликам, база «прячется» в городе (z=1) -->
-  <div id="batsignal" class="batsignal" aria-hidden="true">
-    <div class="beam">
-      <div class="beam-core"></div>
-      <div class="beam-sweep"></div>
-      <div class="beam-dust"></div>
-    </div>
-    <div class="target">
-      <!-- При желании верните свой логотип: -->
-      <!-- <img class="target-img" src="bat-signal.png" alt="bat-signal"> -->
+    <div id="beam-origin" class="beam-origin" aria-hidden="true">
+      <div class="beam">
+        <div class="beam-core"></div>
+        <div class="beam-sweep"></div>
+        <div class="beam-dust"></div>
+      </div>
     </div>
   </div>
 
@@ -245,6 +265,7 @@
   const gridEl    = document.getElementById('grid');
   const updatedEl = document.getElementById('updated');
   const batSignalEl = document.getElementById('batsignal');
+  const beamOriginEl = document.getElementById('beam-origin');
 
   let signalOn = false;
 
@@ -261,15 +282,17 @@
   function powerOn(){
     if (signalOn) return;
     signalOn = true;
-    batSignalEl.classList.add('show','on');
-    batSignalEl.classList.remove('off');
-    setTimeout(()=>batSignalEl.classList.remove('on'), 480);
+    batSignalEl.classList.add('show');
+    beamOriginEl.classList.add('show','on');
+    beamOriginEl.classList.remove('off');
+    setTimeout(()=>beamOriginEl.classList.remove('on'), 520);
   }
   function powerOff(){
     if (!signalOn) return;
     signalOn = false;
-    batSignalEl.classList.add('off');
-    setTimeout(()=>{ batSignalEl.classList.remove('off','show'); }, 480);
+    batSignalEl.classList.remove('show');
+    beamOriginEl.classList.add('off');
+    setTimeout(()=>{ beamOriginEl.classList.remove('off','show'); }, 520);
   }
 
   async function fetchCSV(){
@@ -322,7 +345,6 @@
       return a.name.localeCompare(b.name,'ru');
     });
 
-    /* Правило включения прожектора: включаем, если лидер — золото */
     const topMedal = medalType(data[0]?.medal);
     if (topMedal === 'gold') powerOn(); else powerOff();
 
