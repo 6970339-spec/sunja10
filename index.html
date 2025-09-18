@@ -39,6 +39,33 @@
     opacity:.85; pointer-events:none;
   }
 
+  /* Лёгкий звездопад */
+  .starfall {
+    position: absolute; top: 0; left: 0; right: 0; height: 100vh; z-index: 1;
+    overflow: hidden;
+  }
+  .meteor {
+    position: absolute;
+    width: 2px; height: 2px;
+    background: linear-gradient(45deg, rgba(255,255,255,0.9), rgba(255,255,255,0.2));
+    border-radius: 50%;
+    box-shadow: 0 0 6px 1px rgba(255,255,255,0.4);
+    animation: meteorFall 4s linear infinite;
+  }
+  .meteor:nth-child(1) { left: 20%; animation-delay: 0s; }
+  .meteor:nth-child(2) { left: 50%; animation-delay: 1.5s; }
+  .meteor:nth-child(3) { left: 80%; animation-delay: 3s; }
+  @keyframes meteorFall {
+    0% {
+      transform: translate(0, -100%) rotate(45deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translate(-300px, 100vh) rotate(45deg);
+      opacity: 0;
+    }
+  }
+
   .wrap{max-width:800px;margin:0 auto;padding:20px; position:relative; z-index:1}
   header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
   .title{
@@ -129,8 +156,7 @@
     filter: blur(1px);
     mix-blend-mode: screen;
     opacity:.65;
-    animation: sweepX var(--sweep) linear infinite;
-    animation-play-state: paused;
+    animation: meteorFall 4s linear infinite;
   }
   @keyframes sweepX{
     0%   { background-position: 140% 0; background-size: 200% 100% }
@@ -203,7 +229,13 @@
     </div>
   </div>
 
-  <div class="city" aria-hidden="true"></div>
+  <div class="city" aria-hidden="true">
+    <div class="starfall">
+      <div class="meteor"></div>
+      <div class="meteor"></div>
+      <div class="meteor"></div>
+    </div>
+  </div>
 
 <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
 <script>
