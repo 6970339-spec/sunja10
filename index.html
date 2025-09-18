@@ -9,6 +9,312 @@
     --bg:#0b1220; --muted:#7e8aa3; --text:#e8eefc;
     --gold:#ffd54a;
 
+    /* Настройки прожектора */
+    --disc: 64px;      /* диаметр диска-мишени справа */
+    --thin: 2px;       /* толщина луча у источника (сужена) */
+    --beam: 133px;     /* длина луча */
+    --gap: 0px;        /* зазор между источником и лучом (убран) */
+    --sweep: 5.2s;     /* длительность прохода яркой полосы */
+  }
+
+  html,body{height:100%}
+  body{
+    margin:0; color:var(--text);
+    font-family:Inter,system-ui,Segoe UI,Roboto,Arial;
+    background: radial-gradient(1200px 800px at 20% -10%,#162554 0%,#0b1220 60%) fixed;
+    overflow-x:hidden;
+  }
+
+  /* Силуэт города внизу (декор) */
+  .city {
+    position: fixed; left:0; right:0; bottom:0; height:160px; z-index:0;
+    background:
+      linear-gradient(to top, rgba(0,0,0,.55), rgba(0,0,0,0)) 0 0/100% 100%,
+      url('data:image/svg+xml;utf8,\
+      <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="160" viewBox="0 0 1600 160">\
+        <rect width="1600" height="160" fill="%230a1326"/>\
+        <path d="M0,140 h80 v-40 h40 v-60 h60 v60 h40 v-30 h40 v30 h50 v-70 h70 v70 h40 v-40 h50 v40 h60 v-90 h60 v90 h60 v-50 h40 v50 h70 v-30 h30 v30 h70 v-110 h50 v110 h80 v20 H0z" fill="%2312213f"/>\
+        <path d="M0,150 h90 v-30 h30 v-60 h40 v60 h50 v-40 h40 v40 h50 v-70 h60 v70 h40 v-30 h60 v30 h70 v-100 h40 v100 h50 v-50 h60 v50 h90 v10 H0z" fill="%23152a52"/>\
+      </svg>') repeat-x bottom left / cover;
+    opacity:.85; pointer-events:none;
+  }
+
+  /* Лёгкий звездопад в пределах блока города */
+  .starfall {
+    position: absolute; top: 0; left: 0; right: 0; height: 160px; z-index: 1;
+    overflow: hidden;
+  }
+  .meteor {
+    position: absolute;
+    width: 40px; height: 2px;
+    background: linear-gradient(45deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.3) 70%, rgba(255,255,255,0) 100%);
+    filter: blur(0.5px);
+    box-shadow: 0 0 8px 2px rgba(255,255,255,0.5);
+    animation: meteorFall 2.5s linear infinite;
+  }
+  .meteor:nth-child(1) { left: 20%; animation-delay: 0s; }
+  .meteor:nth-child(2) { left: 50%; animation-delay: 0.8s; }
+  .meteor:nth-child(3) { left: 80%; animation-delay: 1.6s; }
+  @keyframes meteorFall {
+    0% {
+      transform: translate(0, -100%) rotate(45deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translate(-200px, 160px) rotate(45deg);
+      opacity: 0;
+    }
+  }
+
+  .wrap{max-width:800px;margin:0 auto;padding:20px; position:relative; z-index:1}
+  header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .title{
+    display:flex; align-items:center; gap:10px;
+    font-weight:800; letter-spacing:.5px;
+    font-size:clamp(22px,3vw,36px);
+  }
+  .subtitle{display:none}
+
+  .grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:16px}
+  .tile{
+    display:flex;align-items:center;justify-content:space-between;
+    background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0));
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:14px;padding:12px 14px;box-shadow:0 4px 12px rgba(0,0,0,.25)
+  }
+  .left{display:flex;align-items:center;gap:12px;min-width:0}
+  .rank{width:36px;height:36px;border-radius:8px;display:grid;place-items:center;
+        font-weight:800;background:#0f1730;border:1px solid rgba(255,255,255,.08)}
+  .name{font-weight:700;letter-spacing:.3px;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .class{font-size:14px;color:var(--muted)}
+  .right{display:flex;align-items:center;gap:12px}
+  .score{font-weight:800;min-width:48px;text-align:right;font-size:18px}
+  .medal{font-size:24px}
+
+  .footer{margin-top:12px;display:flex;justify-content:space-between;color:#7e8aa3;font-size:12px}
+
+  /* ───────────────────────────
+     Bat-Signal в заголовке
+     ─────────────────────────── */
+  .batsignal{
+    position: relative;
+    width: calc(var(--beam) + var(--disc) + 16px);
+    height: calc(var(--disc) + 16px);
+    display:inline-block; vertical-align:middle;
+    margin-right: 6px;
+    overflow: visible;
+  }
+  .batsignal.show{
+    opacity:1; transform: translateY(0) scale(1);
+    transition: opacity .45s ease, transform .45s ease;
+  }
+
+  .batsignal.on  .beam { animation: powerOn .5s ease both; }
+  .batsignal.off .beam { animation: powerOff .5s ease both; }
+  @keyframes powerOn  { from{opacity:0; transform:scaleX(.7)} to{opacity:1; transform:scaleX(1)} }
+  @keyframes powerOff { from{opacity:1; transform:scaleX(1)} to{opacity:0; transform:scaleX(.7)} }
+
+  .batsignal .beam{
+    position:absolute;
+    left: 0;
+    top: 8px; bottom: 8px;
+    width: var(--beam);
+    transform-origin: left center;
+    --beam-clip: polygon(
+      0% calc(50% - var(--thin)),
+      100% calc(50% - (var(--disc)/2)),
+      100% calc(50% + (var(--disc)/2)),
+      0% calc(50% + var(--thin))
+    );
+  }
+  .batsignal .beam-core,
+  .batsignal .beam-sweep,
+  .batsignal .beam-dust{ clip-path: var(--beam-clip); }
+
+  .batsignal .beam-core{
+    position:absolute; inset:0;
+    background: linear-gradient(90deg,
+                rgba(255,238,170,.30),
+                rgba(255,238,170,.08) 70%,
+                rgba(255,238,170,0) 100%);
+    filter: blur(.9px);
+    animation: coreFlicker 3.6s ease-in-out infinite, sway 9s ease-in-out infinite;
+  }
+  @keyframes coreFlicker{ 0%,100%{opacity:.93} 40%{opacity:.86} 50%{opacity:1} 60%{opacity:.9}}
+  @keyframes sway       { 0%,100%{ transform: rotate(-0.35deg)} 50%{ transform: rotate(0.35deg)} }
+
+  .batsignal .beam-sweep{
+    position:absolute; inset:0;
+    background:
+      linear-gradient(90deg, transparent 0%, transparent 30%, 
+                            rgba(255,245,180,.45) 40%, 
+                            rgba(255,245,180,.9) 45%, 
+                            rgba(255,245,180,.45) 50%, 
+                            transparent 60%, transparent 100%);
+    background-size: 300% 100%;
+    filter: blur(1px);
+    mix-blend-mode: screen;
+    opacity:.65;
+    animation: sweepOneWay var(--sweep) linear infinite;
+    animation-play-state: paused;
+  }
+  @keyframes sweepOneWay{
+    0%   { background-position: 300% 0; }
+    100% { background-position: -100% 0; }
+  }
+  .batsignal.show .beam-sweep{ animation-play-state: running; }
+
+  .batsignal .beam-dust{
+    position:absolute; inset:3% 2%;
+    background:
+      radial-gradient(1.8px 1.8px at 12% 78%, rgba(255,255,210,.25) 0, rgba(255,255,210,0) 60%),
+      radial-gradient(1.8px 1.8px at 32% 60%, rgba(255,255,210,.18) 0, rgba(255,255,210,0) 60%),
+      radial-gradient(1.8px 1.8px at 56% 70%, rgba(255,255,210,.22) 0, rgba(255,255,210,0) 60%),
+      radial-gradient(1.8px 1.8px at 76% 50%, rgba(255,255,210,.16) 0, rgba(255,255,210,0) 60%);
+    filter: blur(.25px);
+    opacity:.6;
+    animation: dustDrift 9s linear infinite;
+  }
+  @keyframes dustDrift{
+    0%   { transform: translateX(-1%) translateY(6%) }
+    100% { transform: translateX( 1%) translateY(-6%) }
+  }
+
+  .batsignal .target{
+    position:absolute;
+    left: calc(var(--beam) - 4px);
+    top: 8px; width: var(--disc); height: var(--disc);
+  }
+  .batsignal .target::before{
+    content:"";
+    position:absolute; inset:0; border-radius:50%;
+    background: radial-gradient(circle at 35% 35%, #fff9c9 0%, #ffe58b 50%, #ffd55a 100%);
+    box-shadow: 0 0 12px 4px rgba(255, 240, 150, 0.6);
+    animation: spotPulse 2.8s ease-in-out infinite;
+  }
+  @keyframes spotPulse { 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.1) } }
+
+  .batsignal .target-img{
+    position:absolute; inset:0;
+    width:100%; height:100%; object-fit:contain;
+    filter: drop-shadow(0 0 2px rgba(0,0,0,.35));
+    opacity: 1;
+  }
+</style>
+</head>
+<body>
+
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <div id="batsignal" class="batsignal" aria-hidden="true">
+          <div class="beam">
+            <div class="beam-core"></div>
+            <div class="beam-sweep"></div>
+            <div class="beam-dust"></div>
+          </div>
+          <div class="target">
+            <img class="target-img" src="bat-signal.png" alt="bat-signal">
+          </div>
+        </div>
+        Школьный рейтинг — Online
+      </div>
+      <div class="subtitle" id="status"></div>
+    </header>
+
+    <div id="grid" class="grid"></div>
+
+    <div class="footer">
+      <span id="updated"></span>
+      <span>Полноэкранный режим (F11) на ТВ</span>
+    </div>
+  </div>
+
+  <div class="city" aria-hidden="true">
+    <div class="starfall">
+      <div class="meteor"></div>
+      <div class="meteor"></div>
+      <div class="meteor"></div>
+    </div>
+  </div>
+
+<script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+<script>
+  const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-yAedPlzSiucopAyXDGUCa4NC8sSVW1e6yxsFXksSIgxTkJhkONG6daXkg2Y8cGwaqsrffbt22_Py/pub?gid=1022445244&single=true&output=csv";
+  const REFRESH_MS = 11000;
+
+  const gridEl    = document.getElementById('grid');
+  const updatedEl = document.getElementById('updated');
+  const batSignalEl = document.getElementById('batsignal');
+
+  let signalOn = false;
+
+  const medalOrder = { gold:0, silver:1, bronze:2, "":3 };
+  const medalType = (str)=>{
+    const s = (str||'').toLowerCase();
+    if (s.includes('зол') || s.includes('gold')) return 'gold';
+    if (s.includes('сер') || s.includes('silver')) return 'silver';
+    if (s.includes('брон')|| s.includes('bronze')) return 'bronze';
+    return '';
+  };
+  const medalEmoji = (t)=> t==='gold'?'🥇':t==='silver'?'🥈':t==='bronze'?'🥉':'';
+
+  function powerOn(){
+    if (signalOn) return;
+    signalOn = true;
+    batSignalEl.classList.add('show','on');
+    batSignalEl.classList.remove('off');
+    setTimeout(()=>batSignalEl.classList.remove('on'), 520);
+  }
+  function powerOff(){
+    if (!signalOn) return;
+    signalOn = false;
+    batSignalEl.classList.add('off');
+    setTimeout(()=>{ batSignalEl.classList.remove('off','show'); }, 520);
+  }
+
+  async function fetchCSV(){
+    try{
+      const res = await fetch(CSV_URL + '&_=' + Date.now(), {cache:'no-store'});
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const text = await res.text();
+      const parsed = Papa.parse(text, { skipEmptyLines: "greedy" });
+      render(parsed.data);
+      updatedEl.textContent = 'Время: ' + new Date().toLocaleTimeString();
+    }catch(e){
+      console.error('Ошибка загрузки CSV:', e);
+    }
+  }
+
+  function render(rows){
+    if(!rows || rows.length===0){
+      gridEl.innerHTML='';
+      powerOff();
+      return;
+    }
+
+    const header = rows[0].map(h => (h||'').toString().trim().toLowerCase());
+    const hasHdr = header.some(h =>
+      h.includes('фио')||h.includes('name')||
+      h.includes('итого')||h.includes('score')||
+      h.includes('медал')||h.includes('medal')||
+      h.includes('класс')||h.includes('class')
+    );
+    const body = rows.slice(hasHdr?1:0);
+
+    let idxName  = hasHdr ? header.findIndex(h=>h.includes('фио')||h.includes('name'))   : 0;
+    let idxScore = hasHdr ? header.findIndex(h=>h.includes('итого')||h.includes('score')) : 1;
+    let idxMedal = hasHdr ? header.findIndex(h=>h.includes<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Школьный рейтинг — Online</title>
+<style>
+  :root{
+    --bg:#0b1220; --muted:#7e8aa3; --text:#e8eefc;
+    --gold:#ffd54a;
+
     /* Прожектор */
     --disc: 64px;          /* диаметр диска */
     --thin: 2px;           /* толщина у источника */
@@ -365,3 +671,4 @@
 </script>
 </body>
 </html>
+
