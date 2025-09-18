@@ -5,26 +5,65 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Школьный рейтинг — Online</title>
 <style>
-  :root{--bg:#0b1220;--muted:#7e8aa3;--text:#e8eefc}
+  :root{
+    --bg:#0b1220;--muted:#7e8aa3;--text:#e8eefc;
+    --gold:#f6c339; --gold-glow:rgba(246,195,57,.25);
+    --silver:#c9d1d9; --silver-glow:rgba(201,209,217,.2);
+    --bronze:#d49b6a; --bronze-glow:rgba(212,155,106,.22);
+  }
   html,body{height:100%}
-  body{margin:0;background:radial-gradient(1200px 800px at 20% -10%,#142040 0%,#0b1220 60%);
-       font-family:Inter,system-ui,Segoe UI,Roboto,Arial;color:var(--text)}
+  body{
+    margin:0;
+    background:radial-gradient(1200px 800px at 20% -10%,#142040 0%,#0b1220 60%);
+    font-family:Inter,system-ui,Segoe UI,Roboto,Arial;color:var(--text)
+  }
   .wrap{max-width:800px;margin:0 auto;padding:20px}
   header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
   .title{font-weight:800;letter-spacing:.5px;font-size:clamp(22px,3vw,36px);display:flex;align-items:center;gap:10px}
   .title img{height:36px;width:36px;object-fit:contain}
   .grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:16px}
-  .tile{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0));
-        border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:12px 14px;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+  .tile{
+    display:flex;align-items:center;justify-content:space-between;
+    background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0));
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:14px;padding:12px 14px;box-shadow:0 4px 12px rgba(0,0,0,.25)
+  }
+  /* Цветовые темы карточек по медали */
+  .tile-gold{
+    border-color: rgba(246,195,57,.45);
+    box-shadow: 0 4px 14px var(--gold-glow);
+    background:
+      linear-gradient(180deg,rgba(246,195,57,.08),rgba(246,195,57,0)) ,
+      linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0));
+  }
+  .tile-silver{
+    border-color: rgba(201,209,217,.45);
+    box-shadow: 0 4px 14px var(--silver-glow);
+    background:
+      linear-gradient(180deg,rgba(201,209,217,.08),rgba(201,209,217,0)) ,
+      linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0));
+  }
+  .tile-bronze{
+    border-color: rgba(212,155,106,.45);
+    box-shadow: 0 4px 14px var(--bronze-glow);
+    background:
+      linear-gradient(180deg,rgba(212,155,106,.08),rgba(212,155,106,0)) ,
+      linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0));
+  }
+
   .left{display:flex;align-items:center;gap:12px;min-width:0}
-  .rank{width:36px;height:36px;border-radius:8px;display:grid;place-items:center;font-weight:800;background:#0f1730;border:1px solid rgba(255,255,255,.08)}
+  .rank{
+    width:36px;height:36px;border-radius:8px;display:grid;place-items:center;font-weight:800;
+    background:#0f1730;border:1px solid rgba(255,255,255,.08)
+  }
   .name{font-weight:700;letter-spacing:.3px;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .class{font-size:14px;color:var(--muted)}
   .right{display:flex;align-items:center;gap:12px}
   .score{font-weight:800;min-width:48px;text-align:right;font-size:18px}
   .medal{font-size:24px}
   .footer{margin-top:12px;display:flex;justify-content:space-between;color:#7e8aa3;font-size:12px}
-  .blink{animation:blink 1.2s linear infinite}@keyframes blink{50%{opacity:.35}}
+  .blink{animation:blink 1.2s linear infinite}
+  @keyframes blink{50%{opacity:.35}}
 </style>
 </head>
 <body>
@@ -85,7 +124,7 @@
     if(!rows || rows.length===0){ gridEl.innerHTML=''; return; }
 
     const header = rows[0].map(h => (h||'').toString().trim().toLowerCase());
-    const hasHdr = header.some(h => h.includes('фио')||h.includes('name')||h.includes('итого')||h.includes('score')||h.includes('медал')||h.includes('medal')||h.includes('класс'));
+    const hasHdr = header.some(h => h.includes('фио')||h.includes('name')||h.includes('итого')||h.includes('score')||h.includes('медал')||h.includes('medal')||h.includes('класс')||h.includes('class'));
     const body = rows.slice(hasHdr?1:0);
 
     let idxName  = hasHdr ? header.findIndex(h=>h.includes('фио')||h.includes('name'))   : 0;
@@ -102,6 +141,7 @@
       return { name, score: Math.round(score), medal, klass };
     }).filter(r=>r.name);
 
+    // сортировка: 🥇 → 🥈 → 🥉 → очки ↓ → ФИО ↑
     data.sort((a,b)=>{
       const ma = medalType(a.medal), mb = medalType(b.medal);
       const byM = medalOrder[ma]-medalOrder[mb]; if(byM) return byM;
@@ -111,18 +151,20 @@
 
     gridEl.innerHTML='';
     data.forEach((row,i)=>{
-      const t = medalType(row.medal), e = medalEmoji(t);
-      const el = document.createElement('div'); el.className='tile';
+      const mtype = medalType(row.medal), memoji = medalEmoji(mtype);
+
+      const el = document.createElement('div');
+      el.className = 'tile ' + (mtype ? ('tile-' + mtype) : '');
       el.innerHTML = `
         <div class="left">
           <div class="rank">${i+1}</div>
           <div>
-            <div class="name">${e?e+' ':''}${row.name}</div>
+            <div class="name">${memoji?memoji+' ':''}${row.name}</div>
             ${row.klass ? `<div class="class">Класс: ${row.klass}</div>` : ""}
           </div>
         </div>
         <div class="right">
-          ${e?`<div class="medal" data-type="${t}">${e}</div>`:''}
+          ${memoji?`<div class="medal">${memoji}</div>`:''}
           <div class="score">${row.score}</div>
         </div>`;
       gridEl.appendChild(el);
