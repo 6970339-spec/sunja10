@@ -12,9 +12,9 @@
     --cityH: clamp(110px, 18vh, 180px);             /* высота города снизу */
     --disc:  clamp(48px, 7vmin, 96px);              /* диаметр диска */
     --thin:  clamp(1.5px, .35vmin, 3px);            /* толщина у основания */
-    --beam:  clamp(320px, 45vh, 760px);             /* длина луча */
+    --beam:  clamp(400px, 50vw + 40vh, 900px);      /* длина луча */
     --sweep: 8s;                                    /* скорость бегущей полосы */
-    --angle: -22deg;                                /* наклон луча */
+    --angle: -22deg;                                /* наклон луча (fallback) */
     --baseX: clamp(14px, 8vw, 140px);               /* смещение базы по X */
     --discOverlap: 4px;                             /* заход луча под диск */
 
@@ -52,7 +52,7 @@
       <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="160" viewBox="0 0 1600 160">\
         <rect width="1600" height="160" fill="%230a1326"/>\
         <path d="M0,140 h80 v-40 h40 v-60 h60 v60 h40 v-30 h40 v30 h50 v-70 h70 v70 h40 v-40 h50 v40 h60 v-90 h60 v90 h60 v-50 h40 v50 h70 v-30 h30 v30 h70 v-110 h50 v110 h80 v20 H0z" fill="%2312213f"/>\
-        <path d="M0,150 h90 v-30 h30 v-60 h40 v60 h50 v-40 h40 v40 h50 v-70 h60 v70 h40 v-30 h60 v30 h70 v-100 h40 v100 h50 v-50 h60 в50 h90 v10 H0z" fill="%23152a52"/>\
+        <path d="M0,150 h90 v-30 h30 v-60 h40 v60 h50 v-40 h40 v40 h50 v-70 h60 v70 h40 v-30 h60 v30 h70 v-100 h40 v100 h50 v-50 h60 v50 h90 v10 H0z" fill="%23152a52"/>\
       </svg>') repeat-x bottom left / cover;
     opacity:.85; pointer-events:none;
   }
@@ -78,19 +78,28 @@
   .footer{margin-top:12px;display:flex;justify-content:space-between;color:#7e8aa3;font-size:12px}
 
   /* ───────────────────────────
-     Bat-Signal: задний план, адаптивная привязка
+     Bat-Signal: луч на заднем плане
      ─────────────────────────── */
   .batsignal{
     position: fixed;
     left: var(--baseX);
     bottom: calc(var(--cityH) - 10px + var(--safeB));
-    width: calc(var(--disc) + 16px);
-    height: calc(var(--beam) + var(--disc) + 32px);
+    width: var(--disc);
+    height: var(--beam);
     z-index:0;
     pointer-events:none;
+    opacity: 0; transform: translateY(4px) scale(.96);
+  }
+  .batsignal.show{
+    opacity: 1; transform: translateY(0) scale(1);
+    transition: opacity .45s ease, transform .45s ease;
   }
 
-  /* Луч идёт наискосок вверх и «растягивается» по высоте --beam */
+  .batsignal.on .beam { animation: powerOn .5s ease both; }
+  .batsignal.off .beam { animation: powerOff .5s ease both; }
+  @keyframes powerOn  { from{opacity:0; transform:scaleY(.7)} to{opacity:1; transform:scaleY(1)} }
+  @keyframes powerOff { from{opacity:1; transform:scaleY(1)} to{opacity:0; transform:scaleY(.7)} }
+
   .batsignal .beam{
     position:absolute; bottom:0; left:50%;
     width: var(--disc); height: var(--beam);
@@ -119,7 +128,6 @@
   }
   @keyframes coreFlicker{0%,100%{opacity:.93}40%{opacity:.86}50%{opacity:1}60%{opacity:.9}}
 
-  /* Полоса СНИЗУ ВВЕРХ (адаптивная) */
   .batsignal .beam-sweep{
     position:absolute; inset:0;
     background:
@@ -133,7 +141,9 @@
     mix-blend-mode: screen;
     opacity:.7;
     animation: sweepUp var(--sweep) linear infinite;
+    animation-play-state: paused;
   }
+  .batsignal.show .beam-sweep{ animation-play-state: running; }
   @keyframes sweepUp{ 0%{background-position:0 200%} 100%{background-position:0 -60%} }
 
   .batsignal .beam-dust{
@@ -150,14 +160,29 @@
   }
   @keyframes dustDrift{0%{transform:translateX(-1%) translateY(4%)}100%{transform:translateX(1%) translateY(-4%)}}
 
-  /* Диск — остаётся на «старом месте» относительно верхушки луча */
-  .batsignal .target{
-    position:absolute;
-    left: 8px;                             /* как было у тебя */
-    top: calc(-1 * var(--beam) - var(--discOverlap));
+  /* ───────────────────────────
+     Диск в заголовке
+     ─────────────────────────── */
+  .batdisc{
+    position: relative;
+    width: calc(var(--disc) + 16px);
+    height: calc(var(--disc) + 16px);
+    display: inline-block; vertical-align: middle;
+    margin-right: 6px;
+    overflow: visible;
+    opacity: 0; transform: translateY(-4px) scale(.96);
+  }
+  .batdisc.show{
+    opacity: 1; transform: translateY(0) scale(1);
+    transition: opacity .45s ease, transform .45s ease;
+  }
+
+  .batdisc .target{
+    position: absolute;
+    left: -4px; top: 8px;
     width: var(--disc); height: var(--disc);
   }
-  .batsignal .target::before{
+  .batdisc .target::before{
     content:"";
     position:absolute; inset:0; border-radius:50%;
     background: radial-gradient(circle at 35% 35%, #fff9c9 0%, #ffe58b 50%, #ffd55a 100%);
@@ -166,7 +191,7 @@
   }
   @keyframes spotPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.08)}}
 
-  .batsignal .target-img{
+  .batdisc .target-img{
     position:absolute; inset:0; width:100%; height:100%; object-fit:contain;
     filter: drop-shadow(0 0 2px rgba(0,0,0,.35));
   }
@@ -176,7 +201,14 @@
 
   <div class="wrap">
     <header>
-      <div class="title">Школьный рейтинг — Online</div>
+      <div class="title">
+        <div id="batdisc" class="batdisc" aria-hidden="true">
+          <div class="target">
+            <img class="target-img" src="bat-signal.png" alt="bat-signal">
+          </div>
+        </div>
+        Школьный рейтинг — Online
+      </div>
       <div class="subtitle" id="status"></div>
     </header>
 
@@ -197,14 +229,11 @@
   </div>
 
   <!-- Луч на заднем плане -->
-  <div class="batsignal" aria-hidden="true">
+  <div id="batsignal" class="batsignal" aria-hidden="true">
     <div class="beam">
       <div class="beam-core"></div>
       <div class="beam-sweep"></div>
       <div class="beam-dust"></div>
-    </div>
-    <div class="target">
-      <img class="target-img" src="bat-signal.png" alt="bat-signal">
     </div>
   </div>
 
@@ -215,85 +244,27 @@
 
   const gridEl    = document.getElementById('grid');
   const updatedEl = document.getElementById('updated');
+  const batSignalEl = document.getElementById('batsignal');
+  const batDiscEl = document.getElementById('batdisc');
 
-  async function fetchCSV(){
-    try{
-      const res = await fetch(CSV_URL + '&_=' + Date.now(), {cache:'no-store'});
-      if(!res.ok) throw new Error('HTTP '+res.status);
-      const text = await res.text();
-      const parsed = Papa.parse(text, { skipEmptyLines: "greedy" });
-      render(parsed.data);
-      updatedEl.textContent = 'Время: ' + new Date().toLocaleTimeString();
-    }catch(e){
-      console.error('Ошибка загрузки CSV:', e);
-    }
+  let signalOn = false;
+
+  function updateBeamAngle() {
+    const discRect = batDiscEl.getBoundingClientRect();
+    const discX = discRect.left + discRect.width / 2; // Центр диска по X
+    const discY = discRect.top + discRect.height / 2; // Центр диска по Y
+    const beamOriginX = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--baseX')); // Начало луча по X
+    const beamOriginY = window.innerHeight - parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cityH')) + 10; // Начало луча по Y
+    const deltaX = discX - beamOriginX;
+    const deltaY = discY - beamOriginY;
+    const angleRad = Math.atan2(deltaY, deltaX);
+    const angleDeg = angleRad * (180 / Math.PI);
+    batSignalEl.querySelector('.beam').style.transform = `translateX(-50%) rotate(${angleDeg}deg)`;
   }
 
-  function render(rows){
-    if(!rows || rows.length===0){ gridEl.innerHTML=''; return; }
-
-    const header = rows[0].map(h => (h||'').toString().trim().toLowerCase());
-    const hasHdr = header.some(h =>
-      h.includes('фио')||h.includes('name')||
-      h.includes('итого')||h.includes('score')||
-      h.includes('медал')||h.includes('medal')||
-      h.includes('класс')||h.includes('class')
-    );
-    const body = rows.slice(hasHdr?1:0);
-
-    let idxName  = hasHdr ? header.findIndex(h=>h.includes('фио')||h.includes('name'))   : 0;
-    let idxScore = hasHdr ? header.findIndex(h=>h.includes('итого')||h.includes('score')) : 1;
-    let idxMedal = hasHdr ? header.findIndex(h=>h.includes('медал')||h.includes('medал')) : 2;
-    let idxClass = hasHdr ? header.findIndex(h=>h.includes('класс')||h.includes('class')) : 3;
-    if(idxName<0) idxName=0; if(idxScore<0) idxScore=1; if(idxMedal<0) idxMedal=2; if(idxClass<0) idxClass=3;
-
-    const data = body.map(r=>{
-      const name  = (r[idxName]  ?? '').toString().trim();
-      const score = parseFloat((r[idxScore] ?? '0').toString().replace(',','.')) || 0;
-      const medal = (r[idxMedal] ?? '').toString().trim();
-      const klass = (r[idxClass] ?? '').toString().trim();
-      return { name, score: Math.round(score), medal, klass };
-    }).filter(r=>r.name);
-
-    data.sort((a,b)=>{
-      const medalOrder = { gold:0, silver:1, bronze:2, "":3 };
-      const medalType = s=>{
-        const t=(s||'').toLowerCase();
-        if(t.includes('зол')||t.includes('gold')) return 'gold';
-        if(t.includes('сер')||t.includes('silver')) return 'silver';
-        if(t.includes('брон')||t.includes('bronze')) return 'bronze';
-        return '';
-      };
-      const ma=medalType(a.medal), mb=medalType(b.medal);
-      const byM=(medalOrder[ma]??3)-(medalOrder[mb]??3); if(byM) return byM;
-      const byS=(b.score||0)-(a.score||0); if(byS) return byS;
-      return a.name.localeCompare(b.name,'ru');
-    });
-
-    gridEl.innerHTML='';
-    const medalEmoji = t=> t==='gold'?'🥇':t==='silver'?'🥈':t==='bronze'?'🥉':'';
-    data.forEach((row,i)=>{
-      const t = ((s)=>{s=(s||'').toLowerCase(); if(s.includes('зол')||s.includes('gold'))return'gold'; if(s.includes('сер')||s.includes('silver'))return'silver'; if(s.includes('брон')||s.includes('bronze'))return'bronze'; return''})(row.medal);
-      const e = medalEmoji(t);
-      const el = document.createElement('div'); el.className='tile';
-      el.innerHTML = `
-        <div class="left">
-          <div class="rank">${i+1}</div>
-          <div>
-            <div class="name">${e?e+' ':''}${row.name}</div>
-            ${row.klass ? `<div class="class">Класс: ${row.klass}</div>` : ""}
-          </div>
-        </div>
-        <div class="right">
-          ${e?`<div class="medal">${e}</div>`:''}
-          <div class="score">${row.score}</div>
-        </div>`;
-      gridEl.appendChild(el);
-    });
-  }
-
-  fetchCSV();
-  setInterval(fetchCSV, REFRESH_MS);
-</script>
-</body>
-</html>
+  const medalOrder = { gold:0, silver:1, bronze:2, "":3 };
+  const medalType = (str)=>{
+    const s = (str||'').toLowerCase();
+    if (s.includes('зол') || s.includes('gold')) return 'gold';
+    if (s.includes('сер') || s.includes('silver')) return 'silver';
+    if (s.includes('брон
