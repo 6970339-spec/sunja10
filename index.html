@@ -68,13 +68,12 @@
   .footer{margin-top:12px;display:flex;justify-content:space-between;color:#7e8aa3;font-size:12px}
   .blink{animation:blink 1.2s linear infinite}@keyframes blink{50%{opacity:.35}}
 
-  /* Bat-Signal (аккуратный, с твоим логотипом) */
+  /* Bat-Signal: с твоим PNG + «живой» фонарь */
   .batsignal{
-    --angle:-28deg;           /* угол луча */
-    --size: 280px;            /* общий размер */
+    --size: 280px;            /* общий размер зоны */
     --disc: 108px;            /* диаметр диска */
-    --fade1: rgba(255, 245, 170, .22);
-    --fade2: rgba(255, 245, 170, .02);
+    --beam-tilt-a: -32deg;    /* крайние положения качания луча */
+    --beam-tilt-b: -22deg;
 
     position: fixed; top: 22px; right: 22px;
     width: var(--size); height: var(--size);
@@ -84,23 +83,63 @@
   }
   .batsignal.show{ opacity:.95; transform: translateY(0) }
 
+  /* лёгкое «плавание» всей конструкции */
+  .batsignal.show { animation: signalFloat 10s ease-in-out infinite; }
+  @keyframes signalFloat{
+    0%,100% { transform: translateY(0) translateX(0) rotate(-0.2deg); }
+    50%     { transform: translateY(-2px) translateX(0.5px) rotate(0.2deg); }
+  }
+
   .batsignal .beam{
     position: absolute; inset: 0;
-    transform: rotate(var(--angle));
     transform-origin: 85% 20%;
+    animation: beamSwing 7s ease-in-out infinite;
+  }
+  /* качание луча */
+  @keyframes beamSwing{
+    0%,100% { transform: rotate(var(--beam-tilt-a)); }
+    50%     { transform: rotate(var(--beam-tilt-b)); }
   }
   .batsignal .beam::before{
     content:"";
     position:absolute; left:8%; bottom:-8%;
     width: 84%; height: 88%;
     clip-path: polygon(60% 0%, 100% 0%, 58% 100%, 42% 100%);
-    background: linear-gradient(to bottom, var(--fade1), var(--fade2));
+    background:
+      linear-gradient(to bottom, rgba(255,245,170,.22), rgba(255,245,170,.02));
     filter: blur(1.5px);
-    animation:sweep 6s ease-in-out infinite;
+    animation:
+      sweep 6s ease-in-out infinite,
+      beamFlicker 3.6s ease-in-out infinite;
   }
-  @keyframes sweep {
-    0%,100%{ transform:translateY(0) }
-    50%    { transform:translateY(-2px) }
+  /* лёгкое мерцание интенсивности луча */
+  @keyframes beamFlicker{
+    0%,100% { opacity:.95 }
+    40%     { opacity:.88 }
+    50%     { opacity:1 }
+    60%     { opacity:.9 }
+  }
+  /* едва заметный вертикальный «ход» */
+  @keyframes sweep { 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-2px) } }
+
+  /* частицы пыли в луче */
+  .batsignal .beam::after{
+    content:"";
+    position:absolute; left:10%; bottom:0;
+    width:80%; height:90%;
+    clip-path: polygon(62% 0%, 100% 0%, 58% 100%, 42% 100%);
+    background:
+      radial-gradient(2px 2px at 10% 90%, rgba(255,255,200,.15) 0, rgba(255,255,200,0) 60%) ,
+      radial-gradient(2px 2px at 30% 70%, rgba(255,255,200,.18) 0, rgba(255,255,200,0) 60%) ,
+      radial-gradient(2px 2px at 55% 85%, rgba(255,255,200,.12) 0, rgba(255,255,200,0) 60%) ,
+      radial-gradient(2px 2px at 75% 60%, rgba(255,255,200,.16) 0, rgba(255,255,200,0) 60%) ;
+    filter: blur(.2px);
+    animation: dustRise 9s linear infinite;
+    opacity:.55;
+  }
+  @keyframes dustRise{
+    0%   { transform: translateY(12%) }
+    100% { transform: translateY(-12%) }
   }
 
   .batsignal .disc{
@@ -113,26 +152,28 @@
       0 0 32px 10px rgba(255,240,150,.38),
       inset -10px 10px 12px rgba(0,0,0,.25);
     animation:
-      discPulse 2.4s ease-in-out infinite,
-      discWobble 7s ease-in-out infinite;
+      discPulse 2.8s ease-in-out infinite,
+      discWobble 12s ease-in-out infinite;
     transform-origin: 50% 50%;
   }
-  @keyframes discPulse { 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.12) } }
-  @keyframes discWobble { 0%,100% { transform: rotate(-0.4deg) } 50% { transform: rotate(0.4deg) } }
+  @keyframes discPulse { 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.1) } }
+  @keyframes discWobble { 0%,100% { transform: rotate(-0.35deg) } 50% { transform: rotate(0.35deg) } }
 
-  /* центрируем твоё изображение в круге */
+  /* логотип по центру диска — твой PNG */
   .batsignal .disc .logo{
     position: absolute;
     inset: 0;
     margin: auto;
-    width: 64px; /* подстрой при необходимости */
-    height: 64px;
+    width: 64px; height: 64px;       /* подстрой при необходимости */
     object-fit: contain;
-    opacity:.95;
+    opacity:.97;
     filter: drop-shadow(0 0 2px rgba(0,0,0,.35));
-    animation: logoPulse 3.5s ease-in-out infinite;
+    animation: logoPulse 4s ease-in-out infinite;
   }
-  @keyframes logoPulse{ 0%,100%{ transform: scale(1) rotate(-0.6deg) } 50%{ transform: scale(1.03) rotate(0.6deg) } }
+  @keyframes logoPulse{
+    0%,100% { transform: scale(1) rotate(-0.6deg); }
+    50%     { transform: scale(1.03) rotate(0.6deg); }
+  }
 </style>
 </head>
 <body>
