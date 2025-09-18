@@ -63,7 +63,7 @@
     .batsignal{
       position:fixed;
       left: clamp(24px, 4vw, 64px);
-      bottom: 84px;                       /* высота крыши города */
+      bottom: calc(84px + 378px);         /* высота крыши города + 10 см */
       width: calc(var(--disc) + 16px);
       height: calc(var(--beam) + var(--disc)); /* контейнер = луч + диск */
       z-index: 0;                         /* за контентом, перед фоном */
