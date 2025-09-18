@@ -10,11 +10,11 @@
     --gold:#ffd54a;
 
     /* Настройки прожектора */
-    --disc: 64px;      /* диаметр диска-мишени справа */
+    --disc: 64px;      /* диаметр диска-мишени сверху */
     --thin: 2px;       /* толщина луча у источника (сужена) */
-    --beam: 133px;     /* длина луча */
+    --beam: 400px;     /* длина луча (увеличена для вертикального направления) */
     --gap: 0px;        /* зазор между источником и лучом (убран) */
-    --sweep: 8s;       /* длительность прохода яркой полосы (замедлена) */
+    --sweep: 8s;       /* длительность прохода яркой полосы */
   }
 
   html,body{height:100%}
@@ -39,7 +39,7 @@
     opacity:.85; pointer-events:none;
   }
 
-  /* Лёгкий звездопад в пределах блока города (вернул звёзды как точки) */
+  /* Лёгкий звездопад в пределах блока города */
   .starfall {
     position: absolute; top: 0; left: 0; right: 0; height: 160px; z-index: 1;
     overflow: hidden;
@@ -94,39 +94,39 @@
   .footer{margin-top:12px;display:flex;justify-content:space-between;color:#7e8aa3;font-size:12px}
 
   /* ───────────────────────────
-     Bat-Signal в заголовке
+     Bat-Signal из Готэма снизу вверх
      ─────────────────────────── */
   .batsignal{
-    position: relative;
-    width: calc(var(--beam) + var(--disc) + 16px);
-    height: calc(var(--disc) + 16px);
-    display:inline-block; vertical-align:middle;
-    margin-right: 6px;
+    position: fixed;
+    left: 50px; bottom: 80px; /* Центрировано в нижней части города */
+    width: calc(var(--disc) + 16px);
+    height: calc(var(--beam) + var(--disc) + 16px);
+    z-index: -1; /* За городом и текстом */
     overflow: visible;
-
-    opacity: 0; transform: translateY(-4px) scale(.96);
+    opacity: 0; transform: translateY(4px) scale(.96);
   }
   .batsignal.show{
-    opacity:1; transform: translateY(0) scale(1);
+    opacity: 1; transform: translateY(0) scale(1);
     transition: opacity .45s ease, transform .45s ease;
   }
 
   .batsignal.on  .beam { animation: powerOn .5s ease both; }
   .batsignal.off .beam { animation: powerOff .5s ease both; }
-  @keyframes powerOn  { from{opacity:0; transform:scaleX(.7)} to{opacity:1; transform:scaleX(1)} }
-  @keyframes powerOff { from{opacity:1; transform:scaleX(1)} to{opacity:0; transform:scaleX(.7)} }
+  @keyframes powerOn  { from{opacity:0; transform:scaleY(.7)} to{opacity:1; transform:scaleY(1)} }
+  @keyframes powerOff { from{opacity:1; transform:scaleY(1)} to{opacity:0; transform:scaleY(.7)} }
 
   .batsignal .beam{
-    position:absolute;
-    left: 0;
-    top: 8px; bottom: 8px;
-    width: var(--beam);
-    transform-origin: left center;
+    position: absolute;
+    bottom: 0; left: 8px; /* Центрировано по горизонтали в .batsignal */
+    width: var(--disc);
+    height: var(--beam);
+    transform: rotate(-90deg);
+    transform-origin: bottom center;
     --beam-clip: polygon(
-      0% calc(50% - var(--thin)),
-      100% calc(50% - (var(--disc)/2)),
-      100% calc(50% + (var(--disc)/2)),
-      0% calc(50% + var(--thin))
+      calc(50% - var(--thin)) 0%,
+      calc(50% - (var(--disc)/2)) 100%,
+      calc(50% + (var(--disc)/2)) 100%,
+      calc(50% + var(--thin)) 0%
     );
   }
   .batsignal .beam-core,
@@ -134,11 +134,11 @@
   .batsignal .beam-dust{ clip-path: var(--beam-clip); }
 
   .batsignal .beam-core{
-    position:absolute; inset:0;
-    background: linear-gradient(90deg,
-                rgba(255,238,170,.30),
-                rgba(255,238,170,.08) 70%,
-                rgba(255,238,170,0) 100%);
+    position: absolute; inset: 0;
+    background: linear-gradient(0deg,
+                rgba(255,238,170,0) 0%,
+                rgba(255,238,170,.08) 30%,
+                rgba(255,238,170,.30) 100%);
     filter: blur(.9px);
     animation: coreFlicker 3.6s ease-in-out infinite, sway 9s ease-in-out infinite;
   }
@@ -146,50 +146,50 @@
   @keyframes sway       { 0%,100%{ transform: rotate(-0.35deg)} 50%{ transform: rotate(0.35deg)} }
 
   .batsignal .beam-sweep{
-    position:absolute; inset:0;
+    position: absolute; inset: 0;
     background:
-      linear-gradient(90deg, transparent 0%, transparent 30%, 
+      linear-gradient(0deg, transparent 0%, transparent 30%, 
                             rgba(255,245,180,.45) 40%, 
                             rgba(255,245,180,.9) 45%, 
                             rgba(255,245,180,.45) 50%, 
                             transparent 60%, transparent 100%);
-    background-size: 300% 100%;
+    background-size: 100% 300%;
     filter: blur(1px);
     mix-blend-mode: screen;
-    opacity:.65;
+    opacity: .65;
     animation: sweepOneWay var(--sweep) linear infinite;
     animation-play-state: paused;
   }
   @keyframes sweepOneWay{
-    0%   { background-position: 300% 0; }
-    100% { background-position: -100% 0; }
+    0%   { background-position: 0 300%; }
+    100% { background-position: 0 -100%; }
   }
   .batsignal.show .beam-sweep{ animation-play-state: running; }
 
   .batsignal .beam-dust{
-    position:absolute; inset:3% 2%;
+    position: absolute; inset: 2% 3%;
     background:
       radial-gradient(1.8px 1.8px at 12% 78%, rgba(255,255,210,.25) 0, rgba(255,255,210,0) 60%),
       radial-gradient(1.8px 1.8px at 32% 60%, rgba(255,255,210,.18) 0, rgba(255,255,210,0) 60%),
       radial-gradient(1.8px 1.8px at 56% 70%, rgba(255,255,210,.22) 0, rgba(255,255,210,0) 60%),
       radial-gradient(1.8px 1.8px at 76% 50%, rgba(255,255,210,.16) 0, rgba(255,255,210,0) 60%);
     filter: blur(.25px);
-    opacity:.6;
+    opacity: .6;
     animation: dustDrift 9s linear infinite;
   }
   @keyframes dustDrift{
     0%   { transform: translateX(-1%) translateY(6%) }
-    100% { transform: translateX( 1%) translateY(-6%) }
+    100% { transform: translateX(1%) translateY(-6%) }
   }
 
   .batsignal .target{
-    position:absolute;
-    left: calc(var(--beam) - 4px);
-    top: 8px; width: var(--disc); height: var(--disc);
+    position: absolute;
+    left: 8px; top: calc(-var(--beam) - 4px); /* Вверху луча с небольшим перекрытием */
+    width: var(--disc); height: var(--disc);
   }
   .batsignal .target::before{
-    content:"";
-    position:absolute; inset:0; border-radius:50%;
+    content: "";
+    position: absolute; inset: 0; border-radius: 50%;
     background: radial-gradient(circle at 35% 35%, #fff9c9 0%, #ffe58b 50%, #ffd55a 100%);
     box-shadow: 0 0 12px 4px rgba(255, 240, 150, 0.6);
     animation: spotPulse 2.8s ease-in-out infinite;
@@ -197,8 +197,8 @@
   @keyframes spotPulse { 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.1) } }
 
   .batsignal .target-img{
-    position:absolute; inset:0;
-    width:100%; height:100%; object-fit:contain;
+    position: absolute; inset: 0;
+    width: 100%; height: 100%; object-fit: contain;
     filter: drop-shadow(0 0 2px rgba(0,0,0,.35));
     opacity: 1;
   }
@@ -209,16 +209,6 @@
   <div class="wrap">
     <header>
       <div class="title">
-        <div id="batsignal" class="batsignal" aria-hidden="true">
-          <div class="beam">
-            <div class="beam-core"></div>
-            <div class="beam-sweep"></div>
-            <div class="beam-dust"></div>
-          </div>
-          <div class="target">
-            <img class="target-img" src="bat-signal.png" alt="bat-signal">
-          </div>
-        </div>
         Школьный рейтинг — Online
       </div>
       <div class="subtitle" id="status"></div>
@@ -237,6 +227,17 @@
       <div class="meteor"></div>
       <div class="meteor"></div>
       <div class="meteor"></div>
+    </div>
+  </div>
+
+  <div id="batsignal" class="batsignal" aria-hidden="true">
+    <div class="beam">
+      <div class="beam-core"></div>
+      <div class="beam-sweep"></div>
+      <div class="beam-dust"></div>
+    </div>
+    <div class="target">
+      <img class="target-img" src="bat-signal.png" alt="bat-signal">
     </div>
   </div>
 
