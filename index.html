@@ -35,7 +35,7 @@
       <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="160" viewBox="0 0 1600 160">\
         <rect width="1600" height="160" fill="%230a1326"/>\
         <path d="M0,140 h80 v-40 h40 v-60 h60 v60 h40 v-30 h40 v30 h50 v-70 h70 v70 h40 v-40 h50 v40 h60 v-90 h60 v90 h60 v-50 h40 v50 h70 v-30 h30 v30 h70 v-110 h50 v110 h80 v20 H0z" fill="%2312213f"/>\
-        <path d="M0,150 h90 v-30 h30 v-60 h40 v60 h50 v-40 h40 v40 h50 v-70 h60 v70 h40 v-30 h60 в30 h70 v-100 h40 v100 h50 v-50 h60 v50 h90 v10 H0z" fill="%23152a52"/>\
+        <path d="M0,150 h90 v-30 h30 v-60 h40 v60 h50 v-40 h40 v40 h50 v-70 h60 v70 h40 v-30 h60 v30 h70 v-100 h40 v100 h50 v-50 h60 v50 h90 v10 H0z" fill="%23152a52"/>\
       </svg>') repeat-x bottom left / cover;
     opacity:.85; pointer-events:none;
   }
@@ -206,9 +206,7 @@
   }
   @keyframes spotPulse { 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.1) } }
 
-  /* КАРТИНКА ВНУТРИ ДИСКА: плавное появление/исчезание синхронно с лучом */
-  .batsignal .target-img,
-  .batsignal .beam-dust-img{
+  .batsignal .target-img{
     position:absolute; inset:0;
     width:100%; height:100%; object-fit:contain;
     filter: drop-shadow(0 0 2px rgba(0,0,0,.35));
@@ -216,16 +214,19 @@
     animation: targetReveal var(--sweep) ease-in-out infinite;
     animation-play-state: paused; /* запустим синхронно с sweep */
   }
-  /* Появление/исчезание синхронно с проходом яркой полосы (к 50%) */
+  /* Появление/исчезание синхронно с проходом яркой полосы (к 50%) — сделал более плавным */
   @keyframes targetReveal{
-    0%,30%   { opacity: 0; }
-    40%      { opacity: .35; }
+    0%,25%   { opacity: 0; }
+    35%      { opacity: 0.15; }
+    40%      { opacity: 0.45; }
+    45%      { opacity: 0.75; }
     50%      { opacity: 1; }   /* максимум когда полоса у круга */
-    60%      { opacity: .35; }
-    70%,100% { opacity: 0; }
+    55%      { opacity: 0.75; }
+    60%      { opacity: 0.45; }
+    65%      { opacity: 0.15; }
+    75%,100% { opacity: 0; }
   }
-  .batsignal.show .target-img,
-  .batsignal.show .beam-dust-img{ animation-play-state: running; }
+  .batsignal.show .target-img{ animation-play-state: running; }
 </style>
 </head>
 <body>
@@ -242,8 +243,7 @@
             <div class="beam-dust"></div>
           </div>
           <div class="target">
-            <!-- ВАЖНО: используем класс beam-dust-img -->
-            <img class="beam-dust-img" src="bat-signal.png" alt="bat-signal">
+            <img class="target-img" src="bat-signal.png" alt="bat-signal">
           </div>
         </div>
         Школьный рейтинг — Online
