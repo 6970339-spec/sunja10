@@ -12,7 +12,7 @@
     /* Настройки прожектора */
     --disc: 64px;      /* диаметр диска-мишени справа */
     --thin: 2px;       /* толщина луча у источника (сужена) */
-    --beam: 133px;     /* длина луча (сокращена в 1.5 раза) */
+    --beam: 133px;     /* длина луча */
     --gap: 0px;        /* зазор между источником и лучом (убран) */
     --sweep: 5.2s;     /* длительность прохода яркой полосы */
   }
@@ -71,7 +71,7 @@
      ─────────────────────────── */
   .batsignal{
     position: relative;
-    width: calc(var(--beam) + var(--disc) + 16px);
+    width: calc(var(--beam) + var(--disc) + 151px + 16px);
     height: calc(var(--disc) + 16px);
     display:inline-block; vertical-align:middle;
     margin-right: 6px;
@@ -156,14 +156,13 @@
 
   .batsignal .target{
     position:absolute;
-    left: var(--beam);
+    left: calc(var(--beam) + 151px);
     top: 8px; width: var(--disc); height: var(--disc);
   }
   .batsignal .target::before{
     content:"";
     position:absolute; inset:0; border-radius:50%;
     background: radial-gradient(circle at 35% 35%, #fff9c9 0%, #ffe58b 56%, #ffd55a 70%, rgba(0,0,0,0) 71%);
-    box-shadow: 0 0 32px 10px rgba(255, 240, 150, .38);
     animation: spotPulse 2.8s ease-in-out infinite;
   }
   @keyframes spotPulse { 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.1) } }
