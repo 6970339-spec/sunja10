@@ -32,7 +32,7 @@
         url('data:image/svg+xml;utf8,\
         <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="160" viewBox="0 0 1600 160">\
         <rect width="1600" height="160" fill="%230a1326"/>\
-        <path d="M0,140 h80 v-40 h40 v-60 h60 v60 h40 v-30 h40 v30 h50 v-70 h70 v70 h40 в-40 h50 v40 h60 v-90 h60 v90 h60 v-50 h40 v50 h70 v-30 h30 v30 h70 v-110 h50 v110 h80 v20 H0z" fill="%2312213f"/>\
+        <path d="M0,140 h80 v-40 h40 v-60 h60 v60 h40 v-30 h40 v30 h50 v-70 h70 v70 h40 v-40 h50 v40 h60 v-90 h60 v90 h60 v-50 h40 v50 х70 v-30 h30 v30 h70 v-110 h50 v110 h80 v20 H0z" fill="%2312213f"/>\
         <path d="M0,150 h90 v-30 h30 v-60 h40 v60 h50 v-40 h40 v40 h50 v-70 h60 v70 h40 v-30 h60 v30 h70 v-100 h40 v100 h50 v-50 h60 v50 h90 v10 H0z" fill="%23152a52"/>\
         </svg>') repeat-x bottom left / cover;
       opacity:.85; pointer-events:none;
@@ -63,10 +63,10 @@
     .batsignal{
       position:fixed;
       left: clamp(24px, 4vw, 64px);
-      bottom: calc(84px + 378px);         /* высота крыши города + 10 см */
+      bottom: calc(84px + 10cm);           /* ПОДНЯТО НА 10 СМ */
       width: calc(var(--disc) + 16px);
       height: calc(var(--beam) + var(--disc)); /* контейнер = луч + диск */
-      z-index: 0;                         /* за контентом, перед фоном */
+      z-index: 0;                           /* за контентом, перед фоном */
       overflow: visible;
       opacity: 1;
     }
@@ -117,6 +117,7 @@
       opacity:.80;
       animation: sweepUp var(--sweep) linear infinite;
     }
+    /* направление: снизу (200%) → вверх (-100%) */
     @keyframes sweepUp{
       0%   { background-position: 0 200%; }
       100% { background-position: 0 -100%; }
@@ -135,7 +136,7 @@
     }
     @keyframes dustDrift{0%{transform:translateX(-1%) translateY(6%)}100%{transform:translateX(1%) translateY(-6%)}}
 
-    /* ДИСК: стык без щели + «обзвет/подсветка» в момент прихода полосы */
+    /* ДИСК: стык без щели + «обнимающая» подсветка в момент прихода полосы */
     .batsignal .target{
       position:absolute;
       left: 8px;
@@ -152,26 +153,24 @@
     }
     @keyframes spotPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.08)}}
 
-    /* ДОП. подсветка нижней дуги — синхрон с полосой в луче (когда «дошла») */
+    /* широкая нижняя подсветка — в синхроне с полосой луча */
     .batsignal .target::after{
-      content:""; position:absolute; inset:-6px; border-radius:50%;
-      /* два градиента: тонкий ободок снизу и мягкий овал подсветки */
+      content:""; position:absolute; inset:-8px; border-radius:50%;
       background:
-        radial-gradient(70% 46% at 50% 96%, rgba(255,250,200,.0) 0%, rgba(255,250,200,.7) 55%, rgba(255,250,200,0) 75%),
-        radial-gradient(120% 80% at 50% 120%, rgba(255,255,210,.0) 0%, rgba(255,255,210,.75) 35%, rgba(255,255,210,0) 65%);
+        radial-gradient(120% 80% at 50% 120%, rgba(255,255,210,.0) 0%, rgba(255,255,210,.9) 35%, rgba(255,255,210,0) 65%);
       mix-blend-mode: screen;
-      opacity: .10;                    /* обычно почти не видно */
+      opacity: .12;
       animation: diskCatch var(--sweep) linear infinite;
       pointer-events:none;
-      filter: blur(.6px);
+      filter: blur(1px);
     }
-    /* пик яркости — в конце цикла, когда полоса «доползла» до диска */
+    /* пик яркости — когда полоса «доползла» до диска */
     @keyframes diskCatch{
-      0%,60%   { opacity:.12; }
-      78%      { opacity:.35; }
-      86%      { opacity:.75; }  /* мягкий «всплеск» подсветки */
-      92%      { opacity:.40; }
-      100%     { opacity:.12; }
+      0%,60%   { opacity:.14; }
+      78%      { opacity:.45; }
+      86%      { opacity:.95; }
+      92%      { opacity:.55; }
+      100%     { opacity:.14; }
     }
 
     .batsignal .target-img{
@@ -297,7 +296,7 @@
             </div>
           </div>
           <div class="right">
-            ${e?`<div class="medal">${e}</div>`:''}
+            ${e?`<div class="medал">${e}</div>`:''}
             <div class="score">${row.score}</div>
           </div>
         `;
