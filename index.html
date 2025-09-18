@@ -10,10 +10,10 @@
     --gold:#ffd54a;
 
     /* Настройки прожектора */
-    --disc: 64px;      /* диаметр диска-мишени справа */
-    --thin: 2px;       /* толщина луча у источника (сужена) */
-    --beam: 133px;     /* длина луча */
-    --gap: 0px;        /* зазор между источником и лучом (убран) */
+    --disc: 64px;      /* диаметр диска */
+    --thin: 2px;       /* толщина луча у источника */
+    --beam: 160px;     /* длина луча (можешь менять) */
+    --gap: 0px;        /* зазор убран: луч вплотную к диску */
     --sweep: 5.2s;     /* длительность прохода яркой полосы */
   }
 
@@ -34,36 +34,31 @@
       <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="160" viewBox="0 0 1600 160">\
         <rect width="1600" height="160" fill="%230a1326"/>\
         <path d="M0,140 h80 v-40 h40 v-60 h60 v60 h40 v-30 h40 v30 h50 v-70 h70 v70 h40 v-40 h50 v40 h60 v-90 h60 v90 h60 v-50 h40 v50 h70 v-30 h30 v30 h70 v-110 h50 v110 h80 v20 H0z" fill="%2312213f"/>\
-        <path d="M0,150 h90 v-30 h30 v-60 h40 v60 h50 v-40 h40 v40 h50 v-70 h60 v70 h40 v-30 h60 v30 h70 v-100 h40 v100 h50 v-50 h60 v50 h90 v10 H0z" fill="%23152a52"/>\
+        <path d="M0,150 h90 v-30 h30 v-60 h40 v60 h50 v-40 h40 v40 h50 v-70 h60 v70 h40 v-30 h60 v30 h70 v-100 h40 v100 х50 v-50 h60 v50 h90 v10 H0z" fill="%23152a52"/>\
       </svg>') repeat-x bottom left / cover;
-    opacity:.85; pointer-events:none;
+    opacity:.85; pointer-events:none; overflow:hidden; /* ★ ограничиваем звёздопад рамками города */
   }
 
-  /* Лёгкий звездопад в пределах блока города */
+  /* Звездопад ТОЛЬКО внутри .city (внизу) — ★ */
   .starfall {
-    position: absolute; top: 0; left: 0; right: 0; height: 160px; z-index: 1;
-    overflow: hidden;
+    position:absolute; left:0; right:0; bottom:0; top:0;
+    z-index:1; pointer-events:none; overflow:hidden;
   }
   .meteor {
-    position: absolute;
-    width: 2px; height: 2px;
-    background: linear-gradient(45deg, rgba(255,255,255,0.9), rgba(255,255,255,0.2));
-    border-radius: 50%;
-    box-shadow: 0 0 6px 1px rgba(255,255,255,0.4);
+    position:absolute; width:2px; height:2px;
+    background: linear-gradient(45deg, rgba(255,255,255,.9), rgba(255,255,255,.2));
+    border-radius:50%;
+    box-shadow:0 0 6px 1px rgba(255,255,255,.4);
     animation: meteorFall 4s linear infinite;
   }
-  .meteor:nth-child(1) { left: 20%; animation-delay: 0s; }
-  .meteor:nth-child(2) { left: 50%; animation-delay: 1.5s; }
-  .meteor:nth-child(3) { left: 80%; animation-delay: 3s; }
-  @keyframes meteorFall {
-    0% {
-      transform: translate(0, -100%) rotate(45deg);
-      opacity: 1;
-    }
-    100% {
-      transform: translate(-100px, 160px) rotate(45deg);
-      opacity: 0;
-    }
+  .meteor:nth-child(1){ left:20%; animation-delay:0s }
+  .meteor:nth-child(2){ left:52%; animation-delay:1.5s }
+  .meteor:nth-child(3){ left:78%; animation-delay:3s }
+
+  /* Движение метеоров ограничено высотой города (≈160px) — ★ */
+  @keyframes meteorFall{
+    0%   { transform: translate(0, -60px) rotate(45deg); opacity:1; }
+    100% { transform: translate(-220px, 190px) rotate(45deg); opacity:0; }
   }
 
   .wrap{max-width:800px;margin:0 auto;padding:20px; position:relative; z-index:1}
@@ -98,13 +93,13 @@
      ─────────────────────────── */
   .batsignal{
     position: relative;
-    width: calc(var(--beam) + var(--disc) + 16px);
+    width: calc(var(--beam) + var(--disc)); /* ★ убрали лишние 151px: диск сразу после луча */
     height: calc(var(--disc) + 16px);
     display:inline-block; vertical-align:middle;
     margin-right: 6px;
-    overflow: visible;
+    overflow:visible;
 
-    opacity: 0; transform: translateY(-4px) scale(.96);
+    opacity:0; transform: translateY(-4px) scale(.96);
   }
   .batsignal.show{
     opacity:1; transform: translateY(0) scale(1);
@@ -116,12 +111,13 @@
   @keyframes powerOn  { from{opacity:0; transform:scaleX(.7)} to{opacity:1; transform:scaleX(1)} }
   @keyframes powerOff { from{opacity:1; transform:scaleX(1)} to{opacity:0; transform:scaleX(.7)} }
 
+  /* Луч: широкий край = диаметр диска */
   .batsignal .beam{
     position:absolute;
-    left: 0;
-    top: 8px; bottom: 8px;
-    width: var(--beam);
-    transform-origin: left center;
+    left:0;
+    top:8px; bottom:8px;
+    width:var(--beam);
+    transform-origin:left center;
     --beam-clip: polygon(
       0% calc(50% - var(--thin)),
       100% calc(50% - (var(--disc)/2)),
@@ -145,6 +141,7 @@
   @keyframes coreFlicker{ 0%,100%{opacity:.93} 40%{opacity:.86} 50%{opacity:1} 60%{opacity:.9}}
   @keyframes sway       { 0%,100%{ transform: rotate(-0.35deg)} 50%{ transform: rotate(0.35deg)} }
 
+  /* ★ ВОССТАНОВИЛ анимацию луча (sweepX), не «meteorFall» */
   .batsignal .beam-sweep{
     position:absolute; inset:0;
     background:
@@ -156,11 +153,12 @@
     filter: blur(1px);
     mix-blend-mode: screen;
     opacity:.65;
-    animation: sweepX var(--sweep) linear infinite;
-    animation-play-state: paused;
+    animation: sweepX var(--sweep) ease-in-out infinite;
+    animation-play-state: paused; /* запускается только когда .show */
   }
   @keyframes sweepX{
-    0%   { background-position: 140% 0; background-size: 200% 100% }
+    0%   { background-position: -40% 0; background-size: 200% 100% }
+    50%  { background-position:  60% 0; background-size: 200% 100% } /* у круга */
     100% { background-position: -40% 0; background-size: 200% 100% }
   }
   .batsignal.show .beam-sweep{ animation-play-state: running; }
@@ -181,24 +179,27 @@
     100% { transform: translateX( 1%) translateY(-6%) }
   }
 
+  /* ДИСК: вплотную к лучу, полноценный круг без «обрезки» и без внутренней тени — ★ */
   .batsignal .target{
     position:absolute;
-    left: var(--beam);
+    left: var(--beam);              /* диск начинается ровно там, где заканчивается луч — ★ */
     top: 8px; width: var(--disc); height: var(--disc);
   }
   .batsignal .target::before{
     content:"";
     position:absolute; inset:0; border-radius:50%;
+    /* без прозрачной кромки: цвет тянется до края — ★ */
     background: radial-gradient(circle at 35% 35%, #fff9c9 0%, #ffe58b 56%, #ffd55a 100%);
-    animation: spotPulse 2.8s ease-in-out infinite;
+    /* только внешний мягкий ореол, без inset — ★ */
+    box-shadow: 0 0 28px 8px rgba(255, 240, 150, .38);
   }
-  @keyframes spotPulse { 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.1) } }
 
   .batsignal .target-img{
-    position:absolute; inset:0;
-    width:100%; height:100%; object-fit:contain;
+    position:absolute; inset:10%;
+    width:80%; height:80%; object-fit:contain;
     filter: drop-shadow(0 0 2px rgba(0,0,0,.35));
-    opacity: 1;
+    opacity:1;  /* всегда видима */
+    animation:none !important; /* без анимации — по твоей просьбе */
   }
 </style>
 </head>
@@ -207,6 +208,7 @@
   <div class="wrap">
     <header>
       <div class="title">
+        <!-- Луч → диск (диск вплотную к лучу; луч анимирован; картинка статична) -->
         <div id="batsignal" class="batsignal" aria-hidden="true">
           <div class="beam">
             <div class="beam-core"></div>
@@ -230,6 +232,7 @@
     </div>
   </div>
 
+  <!-- Город + звездопад только внизу — ★ -->
   <div class="city" aria-hidden="true">
     <div class="starfall">
       <div class="meteor"></div>
