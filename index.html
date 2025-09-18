@@ -9,12 +9,11 @@
     --bg:#0b1220; --muted:#7e8aa3; --text:#e8eefc;
     --gold:#ffd54a;
 
-    /* Настройки прожектора (короткий луч) */
-    --disc: 60px;      /* диаметр диска-мишени справа */
-    --thin: 6px;       /* толщина луча у источника */
-    --beam: 140px;     /* ДЛИНА ЛУЧА — укорочено */
-    --sourceW: 0px;    /* источника слева нет */
-    --gap: 6px;        /* зазор от левого края до начала луча */
+    /* Настройки прожектора */
+    --disc: 64px;      /* диаметр диска-мишени справа */
+    --thin: 2px;       /* толщина луча у источника */
+    --beam: 200px;     /* длина луча */
+    --gap: 0px;        /* зазор между лучом и диском (убран) */
     --sweep: 5.2s;     /* длительность прохода яркой полосы */
   }
 
@@ -26,6 +25,20 @@
     overflow-x:hidden;
   }
 
+  /* Силуэт города внизу (декор) */
+  .city {
+    position: fixed; left:0; right:0; bottom:0; height:160px; z-index:0;
+    background:
+      linear-gradient(to top, rgba(0,0,0,.55), rgba(0,0,0,0)) 0 0/100% 100%,
+      url('data:image/svg+xml;utf8,\
+      <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="160" viewBox="0 0 1600 160">\
+        <rect width="1600" height="160" fill="%230a1326"/>\
+        <path d="M0,140 h80 v-40 h40 v-60 h60 v60 h40 v-30 h40 v30 h50 v-70 h70 v70 h40 v-40 h50 v40 h60 v-90 h60 v90 h60 v-50 h40 v50 h70 v-30 h30 v30 h70 v-110 h50 v110 h80 v20 H0z" fill="%2312213f"/>\
+        <path d="M0,150 h90 v-30 h30 v-60 h40 v60 h50 v-40 h40 v40 h50 v-70 h60 v70 h40 v-30 h60 v30 h70 v-100 h40 v100 h50 v-50 h60 v50 h90 v10 H0z" fill="%23152a52"/>\
+      </svg>') repeat-x bottom left / cover;
+    opacity:.85; pointer-events:none;
+  }
+
   .wrap{max-width:800px;margin:0 auto;padding:20px; position:relative; z-index:1}
   header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
   .title{
@@ -33,6 +46,7 @@
     font-weight:800; letter-spacing:.5px;
     font-size:clamp(22px,3vw,36px);
   }
+  /* статус скрыт, чтобы не дёргать вёрстку */
   .subtitle{display:none}
 
   .grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:16px}
@@ -52,16 +66,14 @@
   .medal{font-size:24px}
 
   .footer{margin-top:12px;display:flex;justify-content:space-between;color:#7e8aa3;font-size:12px}
-  /* Спрятать «обновлено», чтобы не дёргало вёрстку */
-  #updated{display:none}
 
   /* ───────────────────────────
-     Bat-Signal в заголовке (без города)
+     Bat-Signal в заголовке
      ─────────────────────────── */
   .batsignal{
     position: relative;
-    width: calc(var(--sourceW) + var(--gap) + var(--beam) + var(--disc) + 12px);
-    height: calc(var(--disc) + 12px);
+    width: calc(var(--beam) + var(--disc));
+    height: calc(var(--disc) + 16px);       /* достаточно высоты для ПОЛНОГО круга */
     display:inline-block; vertical-align:middle;
     margin-right: 6px;
     overflow: visible;
@@ -82,7 +94,7 @@
   /* Луч слева→вправо; широкий край = диаметр диска */
   .batsignal .beam{
     position:absolute;
-    left: var(--gap);
+    left: 0;
     top: 8px; bottom: 8px;
     width: var(--beam);
     transform-origin: left center;
@@ -109,7 +121,7 @@
   @keyframes coreFlicker{ 0%,100%{opacity:.93} 40%{opacity:.86} 50%{opacity:1} 60%{opacity:.9}}
   @keyframes sway       { 0%,100%{ transform: rotate(-0.35deg)} 50%{ transform: rotate(0.35deg)} }
 
-  /* Полоса подсветки — синхронизирована с появлением картинки в диске */
+  /* ВАЖНО: пауза/запуск sweep синхронно с появлением картинки */
   .batsignal .beam-sweep{
     position:absolute; inset:0;
     background:
@@ -126,7 +138,7 @@
   }
   @keyframes sweepX{
     0%   { background-position: -40% 0; background-size: 200% 100% }
-    50%  { background-position:  60% 0; background-size: 200% 100% } /* яркая полоса у круга */
+    50%  { background-position:  60% 0; background-size: 200% 100% } /* яркая полоса у диска */
     100% { background-position: -40% 0; background-size: 200% 100% }
   }
   .batsignal.show .beam-sweep{ animation-play-state: running; }
@@ -150,36 +162,36 @@
   /* Мишень справа: круг ВСЕГДА виден; картинка — по синхронизации с лучом */
   .batsignal .target{
     position:absolute;
-    left: calc(var(--gap) + var(--beam) + 6px);
+    left: var(--beam);
     top: 8px; width: var(--disc); height: var(--disc);
   }
   .batsignal .target::before{
     content:"";
     position:absolute; inset:0; border-radius:50%;
     background: radial-gradient(circle at 35% 35%, #fff9c9 0%, #ffe58b 56%, #ffd55a 70%, rgba(0,0,0,0) 71%);
-    box-shadow: 0 0 24px 8px rgba(255, 240, 150, .35), inset -10px 10px 12px rgba(0, 0, 0, .25);
+    box-shadow: 0 0 32px 10px rgba(255, 240, 150, .38), inset -10px 10px 12px rgba(0, 0, 0, .25);
     animation: spotPulse 2.8s ease-in-out infinite;
   }
   @keyframes spotPulse { 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.1) } }
 
-  /* КАРТИНКА В ДИСКЕ: плавное появление/исчезание синхронно с лучом */
-  .batsignal .beam-dust-img,
   .batsignal .target-img{
     position:absolute; inset:0;
     width:100%; height:100%; object-fit:contain;
     filter: drop-shadow(0 0 2px rgba(0,0,0,.35));
     opacity: 0;
     animation: targetReveal var(--sweep) ease-in-out infinite;
-    animation-play-state: paused; /* стартуем вместе с sweep */
+    animation-play-state: paused; /* запустим синхронно с sweep */
   }
+  /* Появление/исчезание синхронно с проходом яркой полосы (к 50%) */
   @keyframes targetReveal{
-    0%,30%   { opacity: 0; }
-    40%      { opacity: .35; }
-    50%      { opacity: 1; }   /* максимум, когда полоса у круга */
-    60%      { opacity: .35; }
-    70%,100% { opacity: 0; }
+    0%,35%   { opacity: 0; }
+    40%      { opacity: 0.3; }
+    45%      { opacity: 0.7; }
+    50%      { opacity: 1; }   /* максимум когда полоса у диска */
+    55%      { opacity: 0.7; }
+    60%      { opacity: 0.3; }
+    65%,100% { opacity: 0; }
   }
-  .batsignal.show .beam-dust-img,
   .batsignal.show .target-img{ animation-play-state: running; }
 </style>
 </head>
@@ -188,7 +200,7 @@
   <div class="wrap">
     <header>
       <div class="title">
-        <!-- Короткий луч → круг с картинкой (без города) -->
+        <!-- Луч → круг с картинкой (картинка по синхронизации с лучом) -->
         <div id="batsignal" class="batsignal" aria-hidden="true">
           <div class="beam">
             <div class="beam-core"></div>
@@ -196,7 +208,7 @@
             <div class="beam-dust"></div>
           </div>
           <div class="target">
-            <img class="beam-dust-img" src="bat-signal.png" alt="bat-signal">
+            <img class="target-img" src="bat-signal.png" alt="bat-signal">
           </div>
         </div>
         Школьный рейтинг — Online
@@ -211,6 +223,8 @@
       <span>Полноэкранный режим (F11) на ТВ</span>
     </div>
   </div>
+
+  <div class="city" aria-hidden="true"></div>
 
 <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
 <script>
@@ -254,7 +268,7 @@
       const text = await res.text();
       const parsed = Papa.parse(text, { skipEmptyLines: "greedy" });
       render(parsed.data);
-      // updatedEl.textContent = 'Время: ' + new Date().toLocaleTimeString(); // скрыто
+      updatedEl.textContent = 'Время: ' + new Date().toLocaleTimeString();
     }catch(e){
       console.error('Ошибка загрузки CSV:', e);
     }
@@ -316,7 +330,7 @@
           </div>
         </div>
         <div class="right">
-          ${e?`<div class="medал">${e}</div>`:''}
+          ${e?`<div class="medal">${e}</div>`:''}
           <div class="score">${row.score}</div>
         </div>`;
       gridEl.appendChild(el);
