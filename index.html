@@ -26,7 +26,7 @@
       <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="160" viewBox="0 0 1600 160">\
         <rect width="1600" height="160" fill="%230a1326"/>\
         <path d="M0,140 h80 v-40 h40 v-60 h60 v60 h40 v-30 h40 v30 h50 v-70 h70 v70 h40 v-40 h50 v40 h60 v-90 h60 v90 h60 v-50 h40 v50 h70 v-30 h30 v30 h70 v-110 h50 v110 h80 v20 H0z" fill="%2312213f"/>\
-        <path d="M0,150 h90 v-30 h30 v-60 х40 v60 h50 v-40 h40 v40 h50 v-70 h60 v70 h40 v-30 h60 v30 h70 v-100 h40 v100 h50 v-50 h60 v50 h90 v10 H0z" fill="%23152a52"/>\
+        <path d="M0,150 h90 v-30 h30 v-60 h40 v60 h50 v-40 h40 v40 h50 v-70 h60 v70 h40 v-30 h60 v30 h70 v-100 h40 v100 h50 v-50 h60 v50 h90 v10 H0z" fill="%23152a52"/>\
       </svg>') repeat-x bottom left / cover;
     opacity:.85; pointer-events:none;
   }
@@ -69,50 +69,48 @@
   .blink{animation:blink 1.2s linear infinite}@keyframes blink{50%{opacity:.35}}
 
   /* ───────────────────────────
-     ПРОЖЕКТОР слева → вправо
+     Прожектор слева → вправо
      ─────────────────────────── */
   .batsignal{
     position: fixed; top: 22px; left: 22px;   /* слева сверху */
     width: 520px; height: 240px;
     pointer-events: none; z-index: 3;
 
+    /* базовый off-состояние */
     opacity: 0; transform: translateY(-8px) scale(.98);
     filter: saturate(.9);
   }
+  /* активно (видимо) */
   .batsignal.show{
     opacity:.98; transform: translateY(0) scale(1);
     transition: opacity .45s ease, transform .45s ease, filter .45s ease;
-    animation: signalFloat 10s ease-in-out infinite;
   }
-  @keyframes signalFloat{ 0%,100%{transform:translateY(0) translateX(0) rotate(-0.2deg)} 50%{transform:translateY(-2px) translateX(.5px) rotate(0.2deg)} }
 
+  /* анимации включения/выключения */
   .batsignal.on .beam { animation: powerOn .55s ease both; }
-  .batsignal.off .beam{ animation: powerOff .55s ease both; }
+  .batsignal.off .beam { animation: powerOff .55s ease both; }
   @keyframes powerOn  { from{opacity:0; transform:scaleX(.6)} to{opacity:1; transform:scaleX(1)} }
   @keyframes powerOff { from{opacity:1; transform:scaleX(1)} to{opacity:0; transform:scaleX(.6)} }
 
+  /* луч (конус) */
   .batsignal .beam{
     position:absolute; left:70px; top:34px; right:0; bottom:34px;
     transform-origin: left center;
   }
 
-  /* тело луча: «мерцает», «дышит» (ширина), слегка качается */
+  /* тело луча: тёплый градиент + лёгкое мерцание */
   .batsignal .beam-core{
     position:absolute; inset:0;
-    clip-path: polygon(0% 45%, 100% 12%, 100% 88%, 0% 55%);
-    background: linear-gradient(90deg, rgba(255,238,170,.28), rgba(255,238,170,.06) 70%, rgba(255,238,170,0) 100%);
+    clip-path: polygon(0% 45%, 100% 12%, 100% 88%, 0% 55%); /* конус вправо */
+    background:
+      linear-gradient(90deg, rgba(255,238,170,.28), rgba(255,238,170,.06) 70%, rgba(255,238,170,0) 100%);
     filter: blur(1px);
-    animation:
-      coreFlicker 3.6s ease-in-out infinite,
-      sway 10s ease-in-out infinite,
-      breath 6s ease-in-out infinite;
-    transform-origin: left center;
+    animation: coreFlicker 3.6s ease-in-out infinite, sway 10s ease-in-out infinite;
   }
   @keyframes coreFlicker{ 0%,100%{opacity:.93} 40%{opacity:.86} 50%{opacity:1} 60%{opacity:.9}}
   @keyframes sway       { 0%,100%{ transform: rotate(-0.35deg)} 50%{ transform: rotate(0.35deg)} }
-  @keyframes breath     { 0%,100%{ transform: scaleY(1) } 50%{ transform: scaleY(1.06) } }
 
-  /* бегущая яркая полоса */
+  /* «сканирующая» яркая полоска, которая бежит слева→вправо */
   .batsignal .beam-sweep{
     position:absolute; inset:0;
     clip-path: polygon(0% 45%, 100% 12%, 100% 88%, 0% 55%);
@@ -125,10 +123,7 @@
     filter: blur(1px);
     mix-blend-mode: screen;
     opacity:.65;
-    animation:
-      sweepX 5.5s ease-in-out infinite,
-      breath 6s ease-in-out infinite;
-    transform-origin: left center;
+    animation: sweepX 5.5s ease-in-out infinite;
   }
   @keyframes sweepX{
     0%   { background-position: -40% 0; background-size: 200% 100% }
@@ -136,7 +131,7 @@
     100% { background-position: -40% 0; background-size: 200% 100% }
   }
 
-  /* пылинки */
+  /* пылинки в луче */
   .batsignal .beam-dust{
     position:absolute; inset:2% 2%;
     clip-path: polygon(0% 45%, 100% 12%, 100% 88%, 0% 55%);
@@ -149,9 +144,12 @@
     opacity:.6;
     animation: dustDrift 9s linear infinite;
   }
-  @keyframes dustDrift{ 0%{transform:translateX(-1%) translateY(6%)} 100%{transform:translateX(1%) translateY(-6%)} }
+  @keyframes dustDrift{
+    0%   { transform: translateX(-1%) translateY(6%) }
+    100% { transform: translateX( 1%) translateY(-6%) }
+  }
 
-  /* сам фонарь (твоя картинка) */
+  /* сам «фонарь» — твоя картинка слева */
   .batsignal .projector{
     position:absolute; left:0; bottom:8px;
     width: 90px; height: 90px; object-fit: contain;
@@ -160,31 +158,14 @@
     filter: drop-shadow(0 2px 6px rgba(0,0,0,.6));
     animation: projectorWobble 11s ease-in-out infinite;
   }
-  @keyframes projectorWobble{ 0%,100%{ transform: rotate(-6deg) translateY(0) } 50%{ transform: rotate(-5deg) translateY(-1px) } }
-
-  /* Панель управления прожектором */
-  .signal-controls{
-    position: fixed; right: 16px; bottom: 16px; z-index: 5;
-    display:flex; gap:8px; align-items:center;
-    background: rgba(15,23,48,.6);
-    border:1px solid rgba(255,255,255,.12);
-    border-radius:12px; padding:8px 10px;
-    backdrop-filter: blur(6px);
-    font-size:13px; color:#cfd7ee;
-    user-select:none;
-  }
-  .signal-controls button{
-    cursor:pointer; font:inherit; color:#0b1220; background:#ffe58b;
-    border:0; border-radius:8px; padding:6px 10px; font-weight:800;
-  }
-  .signal-controls .mode{opacity:.9}
-  .signal-controls kbd{
-    background: rgba(255,255,255,.12); padding:2px 6px; border-radius:6px; font-size:12px;
+  @keyframes projectorWobble{
+    0%,100%{ transform: rotate(-6deg) translateY(0) }
+    50%    { transform: rotate(-5deg) translateY(-1px) }
   }
 </style>
 </head>
 <body>
-  <!-- Прожектор: появляется при золоте у лидера или вручную -->
+  <!-- Прожектор: появляется при золоте у лидера -->
   <div id="batsignal" class="batsignal">
     <div class="beam">
       <div class="beam-core"></div>
@@ -192,14 +173,6 @@
       <div class="beam-dust"></div>
     </div>
     <img class="projector" src="bat-signal.png" alt="Projector">
-  </div>
-
-  <!-- Мини-панель: Off / Auto / On + подсказка по горячей клавише -->
-  <div class="signal-controls" id="signalControls" title="Нажми B для переключения">
-    <span>Прожектор:</span>
-    <button id="toggleSignal">Auto</button>
-    <span class="mode" id="modeText">(таблица управляет)</span>
-    <span>• Hotkey: <kbd>B</kbd></span>
   </div>
 
   <div class="wrap">
@@ -231,11 +204,7 @@
   const updatedEl = document.getElementById('updated');
   const batSignalEl = document.getElementById('batsignal');
 
-  // ПАНЕЛЬ: режимы — null=Auto, true=Force ON, false=Force OFF
-  const toggleBtn = document.getElementById('toggleSignal');
-  const modeText  = document.getElementById('modeText');
-  let overrideMode = null;   // стартуем в Auto
-  let signalOn = false;
+  let signalOn = false; // текущее состояние прожектора
 
   const medalOrder = { gold:0, silver:1, bronze:2, "":3 };
   const medalType = (str)=>{
@@ -247,41 +216,23 @@
   };
   const medalEmoji = (t)=> t==='gold'?'🥇':t==='silver'?'🥈':t==='bronze'?'🥉':'';
 
-  // Управление прожектором
   function powerOn(){
     if (signalOn) return;
     signalOn = true;
     batSignalEl.classList.add('show','on');
     batSignalEl.classList.remove('off');
+    // снять одноразовый класс после анимации
     setTimeout(()=>batSignalEl.classList.remove('on'), 600);
   }
   function powerOff(){
     if (!signalOn) return;
     signalOn = false;
     batSignalEl.classList.add('off');
-    setTimeout(()=>{ batSignalEl.classList.remove('off','show'); }, 600);
+    // дать анимации потухания отыграть и спрятать
+    setTimeout(()=>{
+      batSignalEl.classList.remove('off','show');
+    }, 600);
   }
-
-  // Применить логику видимости с учётом override
-  function applySignalVisibility(leaderIsGold){
-    if (overrideMode === true){ powerOn(); return; }
-    if (overrideMode === false){ powerOff(); return; }
-    // Auto
-    leaderIsGold ? powerOn() : powerOff();
-  }
-
-  // Панель: клик — циклим OFF → AUTO → ON
-  function cycleMode(){
-    if (overrideMode === null){ overrideMode = true;  toggleBtn.textContent='On';  modeText.textContent='(принудительно)'; applySignalVisibility(false); }
-    else if (overrideMode === true){ overrideMode = false; toggleBtn.textContent='Off'; modeText.textContent='(выключен)'; powerOff(); }
-    else { overrideMode = null; toggleBtn.textContent='Auto'; modeText.textContent='(таблица управляет)'; }
-  }
-  toggleBtn.addEventListener('click', cycleMode);
-
-  // Горячая клавиша B
-  window.addEventListener('keydown', (e)=>{
-    if (e.key.toLowerCase() === 'b'){ cycleMode(); }
-  });
 
   async function fetchCSV(){
     try{
@@ -302,7 +253,7 @@
   function render(rows){
     if(!rows || rows.length===0){
       gridEl.innerHTML='';
-      applySignalVisibility(false);
+      powerOff();
       return;
     }
 
@@ -337,9 +288,9 @@
       return a.name.localeCompare(b.name,'ru');
     });
 
-    // включаем/выключаем прожектор (или доверяем панели)
-    const leaderIsGold = medalType(data[0]?.medal) === 'gold';
-    applySignalVisibility(leaderIsGold);
+    // включаем/выключаем прожектор по медали лидера
+    const topMedal = medalType(data[0]?.medal);
+    if (topMedal === 'gold') powerOn(); else powerOff();
 
     // рендер списка
     gridEl.innerHTML='';
