@@ -7,6 +7,305 @@
 <style>
   :root{
     --bg:#0b1220; --muted:#7e8aa3; --text:#e8eefc;
+    --gold:#ffd54a; --disc:52px;
+  }
+  html,body{height:100%}
+  body{
+    margin:0; color:var(--text);
+    font-family:Inter,system-ui,Segoe UI,Roboto,Arial;
+    background: radial-gradient(1200px 800px at 20% -10%,#162554 0%,#0b1220 60%) fixed;
+    overflow-x:hidden;
+  }
+
+  /* Силуэт города внизу (inline SVG) */
+  .city {
+    position: fixed; left:0; right:0; bottom:0; height:160px; z-index:0;
+    background:
+      linear-gradient(to top, rgba(0,0,0,.55), rgba(0,0,0,0)) 0 0/100% 100%,
+      url('data:image/svg+xml;utf8,\
+      <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="160" viewBox="0 0 1600 160">\
+        <rect width="1600" height="160" fill="%230a1326"/>\
+        <path d="M0,140 h80 v-40 h40 v-60 h60 v60 h40 v-30 h40 v30 h50 v-70 h70 v70 h40 v-40 h50 v40 h60 v-90 h60 v90 h60 v-50 h40 v50 h70 v-30 h30 v30 h70 v-110 h50 v110 h80 v20 H0z" fill="%2312213f"/>\
+        <path d="M0,150 h90 v-30 h30 v-60 h40 v60 h50 v-40 h40 v40 h50 v-70 h60 v70 h40 v-30 h60 v30 h70 v-100 h40 v100 h50 v-50 h60 v50 h90 v10 H0z" fill="%23152a52"/>\
+      </svg>') repeat-x bottom left / cover;
+    opacity:.85; pointer-events:none;
+  }
+
+  .wrap{max-width:800px;margin:0 auto;padding:20px; position:relative; z-index:1}
+  header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .title{
+    display:flex; align-items:center; gap:10px;
+    font-weight:800; letter-spacing:.5px;
+    font-size:clamp(22px,3vw,36px);
+  }
+  .subtitle{color:var(--muted);font-size:14px}
+
+  .grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:16px}
+  .tile{
+    display:flex;align-items:center;justify-content:space-between;
+    background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0));
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:14px;padding:12px 14px;box-shadow:0 4px 12px rgba(0,0,0,.25)
+  }
+  .left{display:flex;align-items:center;gap:12px;min-width:0}
+  .rank{width:36px;height:36px;border-radius:8px;display:grid;place-items:center;
+        font-weight:800;background:#0f1730;border:1px solid rgba(255,255,255,.08)}
+  .name{font-weight:700;letter-spacing:.3px;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .class{font-size:14px;color:var(--muted)}
+  .right{display:flex;align-items:center;gap:12px}
+  .score{font-weight:800;min-width:48px;text-align:right;font-size:18px}
+  .medal{font-size:24px}
+
+  .footer{margin-top:12px;display:flex;justify-content:space-between;color:#7e8aa3;font-size:12px}
+  .blink{animation:blink 1.2s linear infinite}@keyframes blink{50%{opacity:.35}}
+
+  /* ───────────────────────────
+     Bat-Signal встроенный в заголовок
+     ─────────────────────────── */
+  .batsignal{
+    position: relative;                 /* встроен в строку заголовка */
+    width: 300px; height: 68px;         /* удлинено для луча */
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+
+  /* луч: конус слева→вправо */
+  .batsignal .beam{
+    position:absolute; left:80px; top:8px; right:0; bottom:8px;
+    transform-origin: left center;
+    opacity: 0;
+    transform: scaleX(.7);
+    transition: opacity .45s ease, transform .45s ease;
+  }
+  .batsignal.active .beam {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  .batsignal .beam-core{
+    position:absolute; inset:0;
+    clip-path: polygon(0% 48%, 100% 0%, 100% 100%, 0% 52%);
+    background: linear-gradient(90deg,
+                rgba(255,238,170,.30),
+                rgba(255,238,170,.08) 70%,
+                rgba(255,238,170,0) 100%);
+    filter: blur(.9px);
+  }
+  .batsignal.active .beam-core {
+    animation: coreFlicker 3.6s ease-in-out infinite, sway 9s ease-in-out infinite;
+  }
+  @keyframes coreFlicker{ 0%,100%{opacity:.93} 40%{opacity:.86} 50%{opacity:1} 60%{opacity:.9}}
+  @keyframes sway       { 0%,100%{ transform: rotate(-0.35deg)} 50%{ transform: rotate(0.35deg)} }
+
+  .batsignal .beam-sweep{
+    position:absolute; inset:0;
+    clip-path: polygon(0% 48%, 100% 0%, 100% 100%, 0% 52%);
+    background:
+      linear-gradient(90deg, transparent 0%,
+                               rgba(255,245,180,.45) 10%,
+                               rgba(255,245,180,.9) 13%,
+                               rgba(255,245,180,.45) 16%,
+                               transparent 26%);
+    filter: blur(1px);
+    mix-blend-mode: screen;
+    opacity:.65;
+  }
+  .batsignal.active .beam-sweep {
+    animation: sweepX 5.2s ease-in-out infinite;
+  }
+  @keyframes sweepX{
+    0%   { background-position: -40% 0; background-size: 200% 100% }
+    50%  { background-position:  60% 0; background-size: 200% 100% }
+    100% { background-position: -40% 0; background-size: 200% 100% }
+  }
+
+  /* bat-signal.png с желтым фоном */
+  .batsignal .beam-dust{
+    position:absolute; right:0; top:8px;
+    width: var(--disc); height: var(--disc);
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #fff9c9 0%, #ffe58b 56%, #ffd55a 70%, rgba(0, 0, 0, 0) 71%);
+    box-shadow: 0 0 32px 10px rgba(255, 240, 150, .38), inset -10px 10px 12px rgba(0, 0, 0, .25);
+  }
+  .batsignal .beam-dust-img{
+    position:absolute; right:0; top:8px;
+    width: var(--disc); height: var(--disc); object-fit: contain;
+    opacity: 0;
+    transition: opacity .45s ease;
+  }
+  .batsignal.active .beam-dust-img {
+    opacity: 1;
+  }
+
+  /* Маленький силуэт Готэма в начале луча */
+  .batsignal .gotham-silhouette {
+    position: absolute; left: -100px; top: 8px;
+    width: 80px; height: 80px;
+    background: url('data:image/svg+xml;utf8,\
+      <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">\
+        <path d="M0,90 h10 v-20 h10 v-30 h10 v30 h10 v-15 h10 v15 h10 v-35 h10 v35 h10 v-25 h10 v25 h10 v-10 h10 v10 H0z" fill="%2312213f"/>\
+        <path d="M0,95 h15 v-15 h10 v-25 h10 v25 h10 v-20 h10 v20 h10 v-30 h10 v30 h10 v-15 h5 v15 H0z" fill="%23152a52"/>\
+      </svg>') no-repeat center / contain;
+    opacity: 0.6;
+    transition: opacity .45s ease;
+  }
+  .batsignal.active .gotham-silhouette {
+    opacity: 0.8;
+  }
+</style>
+</head>
+<body>
+
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <!-- ВСТРОЕННЫЙ ПРОЖЕКТОР ВМЕСТО ЛОГО -->
+        <div id="batsignal" class="batsignal" aria-hidden="true">
+          <div class="gotham-silhouette"></div>
+          <div class="beam">
+            <div class="beam-core"></div>
+            <div class="beam-sweep"></div>
+          </div>
+          <div class="beam-dust"></div>
+          <img class="beam-dust-img" src="bat-signal.png" alt="">
+        </div>
+        Школьный рейтинг — Online
+      </div>
+      <div class="subtitle" id="status"></div>
+    </header>
+
+    <div id="grid" class="grid"></div>
+
+    <div class="footer">
+      <span id="updated"></span>
+      <span>Полноэкранный режим (F11) на ТВ</span>
+    </div>
+  </div>
+
+  <div class="city" aria-hidden="true"></div>
+
+<script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+<script>
+  const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-yAedPlzSiucopAyXDGUCa4NC8sSVW1e6yxsFXksSIgxTkJhkONG6daXkg2Y8cGwaqsrffbt22_Py/pub?gid=1022445244&single=true&output=csv";
+  const REFRESH_MS = 11000;
+
+  const gridEl    = document.getElementById('grid');
+  const statusEl  = document.getElementById('status');
+  const updatedEl = document.getElementById('updated');
+  const batSignalEl = document.getElementById('batsignal');
+
+  let signalOn = false;
+
+  const medalOrder = { gold:0, silver:1, bronze:2, "":3 };
+  const medalType = (str)=>{
+    const s = (str||'').toLowerCase();
+    if (s.includes('зол') || s.includes('gold')) return 'gold';
+    if (s.includes('сер') || s.includes('silver')) return 'silver';
+    if (s.includes('брон')|| s.includes('bronze')) return 'bronze';
+    return '';
+  };
+  const medalEmoji = (t)=> t==='gold'?'🥇':t==='silver'?'🥈':t==='bronze'?'🥉':'';
+
+  function powerOn(){
+    if (signalOn) return;
+    signalOn = true;
+    batSignalEl.classList.add('active');
+  }
+  function powerOff(){
+    if (!signalOn) return;
+    signalOn = false;
+    batSignalEl.classList.remove('active');
+  }
+
+  async function fetchCSV(){
+    try{
+      const res = await fetch(CSV_URL + '&_=' + Date.now(), {cache:'no-store'});
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const text = await res.text();
+      const parsed = Papa.parse(text, { skipEmptyLines: "greedy" });
+      render(parsed.data);
+      updatedEl.textContent = 'Время: ' + new Date().toLocaleTimeString();
+    }catch(e){
+      console.error(e);
+    }
+  }
+
+  function render(rows){
+    if(!rows || rows.length===0){
+      gridEl.innerHTML='';
+      powerOff();
+      return;
+    }
+
+    const header = rows[0].map(h => (h||'').toString().trim().toLowerCase());
+    const hasHdr = header.some(h =>
+      h.includes('фио')||h.includes('name')||
+      h.includes('итого')||h.includes('score')||
+      h.includes('медал')||h.includes('medal')||
+      h.includes('класс')||h.includes('class')
+    );
+    const body = rows.slice(hasHdr?1:0);
+
+    let idxName  = hasHdr ? header.findIndex(h=>h.includes('фио')||h.includes('name'))   : 0;
+    let idxScore = hasHdr ? header.findIndex(h=>h.includes('итого')||h.includes('score')) : 1;
+    let idxMedal = hasHdr ? header.findIndex(h=>h.includes('медал')||h.includes('medal')) : 2;
+    let idxClass = hasHdr ? header.findIndex(h=>h.includes('класс')||h.includes('class')) : 3;
+    if(idxName<0) idxName=0; if(idxScore<0) idxScore=1; if(idxMedal<0) idxMedal=2; if(idxClass<0) idxClass=3;
+
+    const data = body.map(r=>{
+      const name  = (r[idxName]  ?? '').toString().trim();
+      const score = parseFloat((r[idxScore] ?? '0').toString().replace(',','.')) || 0;
+      const medal = (r[idxMedal] ?? '').toString().trim();
+      const klass = (r[idxClass] ?? '').toString().trim();
+      return { name, score: Math.round(score), medal, klass };
+    }).filter(r=>r.name);
+
+    // сортировка: 🥇 → 🥈 → 🥉 → очки ↓ → ФИО ↑
+    data.sort((a,b)=>{
+      const ma = medalType(a.medal), mb = medalType(b.medal);
+      const byM = (medalOrder[ma]??3)-(medalOrder[mb]??3); if(byM) return byM;
+      const byS = (b.score||0)-(a.score||0);               if(byS) return byS;
+      return a.name.localeCompare(b.name,'ru');
+    });
+
+    // включаем/выключаем прожектор по медали лидера
+    const topMedal = medalType(data[0]?.medal);
+    if (topMedal === 'gold') powerOn(); else powerOff();
+
+    // рендер списка
+    gridEl.innerHTML='';
+    data.forEach((row,i)=>{
+      const t = medalType(row.medal), e = medalEmoji(t);
+      const el = document.createElement('div'); el.className='tile';
+      el.innerHTML = `
+        <div class="left">
+          <div class="rank">${i+1}</div>
+          <div>
+            <div class="name">${e?e+' ':''}${row.name}</div>
+            ${row.klass ? `<div class="class">Класс: ${row.klass}</div>` : ""}
+          </div>
+        </div>
+        <div class="right">
+          ${e?`<div class="medal" data-type="${t}">${e}</div>`:''}
+          <div class="score">${row.score}</div>
+        </div>`;
+      gridEl.appendChild(el);
+    });
+  }
+
+  fetchCSV();
+  setInterval(fetchCSV, REFRESH_MS);
+</script>
+</body>
+</html><!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Школьный рейтинг — Online</title>
+<style>
+  :root{
+    --bg:#0b1220; --muted:#7e8aa3; --text:#e8eefc;
     --gold:#ffd54a;
 
     /* Настройки прожектора */
@@ -367,3 +666,4 @@
 </script>
 </body>
 </html>
+
