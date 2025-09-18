@@ -26,7 +26,7 @@
       <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="160" viewBox="0 0 1600 160">\
         <rect width="1600" height="160" fill="%230a1326"/>\
         <path d="M0,140 h80 v-40 h40 v-60 h60 v60 h40 v-30 h40 v30 h50 v-70 h70 v70 h40 v-40 h50 v40 h60 v-90 h60 v90 h60 v-50 h40 v50 h70 v-30 h30 v30 h70 v-110 h50 v110 h80 v20 H0z" fill="%2312213f"/>\
-        <path d="M0,150 h90 v-30 h30 v-60 h40 v60 h50 v-40 h40 v40 h50 v-70 h60 v70 h40 v-30 h60 v30 h70 v-100 h40 v100 h50 v-50 h60 v50 h90 v10 H0z" fill="%23152a52"/>\
+        <path d="M0,150 h90 v-30 h30 v-60 h40 v60 h50 v-40 h40 v40 h50 v-70 h60 v70 h40 v-30 h60 в30 h70 v-100 h40 v100 h50 v-50 h60 v50 h90 v10 H0z" fill="%23152a52"/>\
       </svg>') repeat-x bottom left / cover;
     opacity:.85; pointer-events:none;
   }
@@ -60,31 +60,45 @@
   .blink{animation:blink 1.2s linear infinite}@keyframes blink{50%{opacity:.35}}
 
   /* ───────────────────────────
-     Bat-Signal встроенный в заголовок
+     Bat-Signal в заголовке:
+     слева лампа → луч вправо → справа логотип с подсветкой
      ─────────────────────────── */
   .batsignal{
-    position: relative;                 /* встроен в строку заголовка */
-    width: 150px; height: 68px;         /* компактно */
-    display: inline-block;
-    vertical-align: middle;
+    position: relative;
+    width: 260px; height: 72px;     /* можно подстроить */
+    display:inline-block; vertical-align:middle;
     margin-right: 6px;
 
-    opacity: 0; transform: translateY(-4px) scale(.96);
+    opacity:0; transform: translateY(-4px) scale(.96);
   }
   .batsignal.show{
     opacity:1; transform: translateY(0) scale(1);
     transition: opacity .45s ease, transform .45s ease;
   }
 
-  /* эффекты включения/выключения */
+  /* вкл/выкл анимации для луча */
   .batsignal.on  .beam { animation: powerOn .5s ease both;  }
   .batsignal.off .beam { animation: powerOff .5s ease both; }
   @keyframes powerOn  { from{opacity:0; transform:scaleX(.7)} to{opacity:1; transform:scaleX(1)} }
   @keyframes powerOff { from{opacity:1; transform:scaleX(1)} to{opacity:0; transform:scaleX(.7)} }
 
-  /* луч: конус слева→вправо */
+  /* лампа слева */
+  .batsignal .projector{
+    position:absolute; left:0; bottom:4px;
+    width: 60px; height: 60px; object-fit:contain;
+    transform-origin: 40% 70%;
+    transform: rotate(-6deg);
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,.55));
+    animation: projectorWobble 11s ease-in-out infinite;
+  }
+  @keyframes projectorWobble{
+    0%,100%{ transform: rotate(-6deg) translateY(0) }
+    50%    { transform: rotate(-5deg) translateY(-1px) }
+  }
+
+  /* луч из лампы вправо */
   .batsignal .beam{
-    position:absolute; left:56px; top:8px; right:0; bottom:8px;
+    position:absolute; left:58px; top:10px; right:64px; bottom:10px; /* оставили место под логотип справа */
     transform-origin: left center;
   }
   .batsignal .beam-core{
@@ -137,19 +151,31 @@
     100% { transform: translateX( 1%) translateY(-6%) }
   }
 
-  /* корпус прожектора (твоя PNG) */
-  .batsignal .projector{
-    position:absolute; left:0; bottom:2px;
-    width: 56px; height: 56px; object-fit: contain;
-    transform-origin: 40% 70%;
-    transform: rotate(-6deg);
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,.55));
-    animation: projectorWobble 11s ease-in-out infinite;
+  /* логотип справа + подсветка-диск позади (как фонарь) */
+  .batsignal .logo-spot{
+    position:absolute; right:0; top:8px;
+    width: 56px; height: 56px;
   }
-  @keyframes projectorWobble{
-    0%,100%{ transform: rotate(-6deg) translateY(0) }
-    50%    { transform: rotate(-5deg) translateY(-1px) }
+  .batsignal .logo-spot::before{
+    content:"";
+    position:absolute; inset:0; border-radius:50%;
+    background:
+      radial-gradient(circle at 35% 35%, #fff9c9 0%, #ffe58b 56%, #ffd55a 70%, rgba(0,0,0,0) 71%);
+    box-shadow:
+      0 0 24px 8px rgba(255,240,150,.35),
+      inset -8px 8px 10px rgba(0,0,0,.25);
+    animation: spotPulse 2.8s ease-in-out infinite;
+    filter: blur(.2px);
   }
+  @keyframes spotPulse { 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.1) } }
+
+  .batsignal .logo-img{
+    position:absolute; inset:0; width:100%; height:100%;
+    object-fit:contain;
+    filter: drop-shadow(0 0 2px rgba(0,0,0,.35));
+    animation: logoBreath 4s ease-in-out infinite;
+  }
+  @keyframes logoBreath{ 0%,100%{ transform: scale(1) rotate(-0.4deg) } 50%{ transform: scale(1.03) rotate(0.4deg) } }
 </style>
 </head>
 <body>
@@ -157,14 +183,19 @@
   <div class="wrap">
     <header>
       <div class="title">
-        <!-- ВСТРОЕННЫЙ ПРОЖЕКТОР ВМЕСТО ЛОГО -->
+        <!-- ВСТРОЕННЫЙ БЛОК: слева лампа, луч вправо, справа логотип с подсветкой -->
         <div id="batsignal" class="batsignal" aria-hidden="true">
+          <img class="projector" src="bat-signal.png" alt="Projector">
           <div class="beam">
             <div class="beam-core"></div>
             <div class="beam-sweep"></div>
             <div class="beam-dust"></div>
           </div>
-          <img class="projector" src="bat-signal.png" alt="">
+          <div class="logo-spot">
+            <img class="logo-img"
+                 src="https://avatars.mds.yandex.net/i?id=37a18b66d177292ce1441499f6fa817e8c6893ff-4275214-images-thumbs&n=1"
+                 alt="Логотип">
+          </div>
         </div>
         Школьный рейтинг — Online
       </div>
