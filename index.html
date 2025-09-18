@@ -68,7 +68,7 @@
   .footer{margin-top:12px;display:flex;justify-content:space-between;color:#7e8aa3;font-size:12px}
   .blink{animation:blink 1.2s linear infinite}@keyframes blink{50%{opacity:.35}}
 
-  /* Bat-Signal (аккуратный) */
+  /* Bat-Signal (аккуратный, с твоим логотипом) */
   .batsignal{
     --angle:-28deg;           /* угол луча */
     --size: 280px;            /* общий размер */
@@ -112,29 +112,36 @@
     box-shadow:
       0 0 32px 10px rgba(255,240,150,.38),
       inset -10px 10px 12px rgba(0,0,0,.25);
-    animation: discPulse 2.4s ease-in-out infinite;
+    animation:
+      discPulse 2.4s ease-in-out infinite,
+      discWobble 7s ease-in-out infinite;
+    transform-origin: 50% 50%;
   }
   @keyframes discPulse { 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.12) } }
+  @keyframes discWobble { 0%,100% { transform: rotate(-0.4deg) } 50% { transform: rotate(0.4deg) } }
 
-  .batsignal .bat{
-    position:absolute;
-    right: calc(18px + (var(--disc) - 64px)/2);
-    top:  calc(14px + (var(--disc) - 64px)/2);
-    width:64px; height:64px; opacity:.95;
-    background:
-      url('data:image/svg+xml;utf8,\
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 496">\
-        <path fill="%23000" d="M248 78c-18 21-33 36-61 36-19 0-36-6-54-16 7 20 9 39 3 56-9 21-27 33-53 32 21 10 37 23 44 42 6 17 2 36-9 56 26-9 50-11 69-2 19 8 34 25 44 51 10-26 25-43 44-51 19-9 43-7 69 2-11-20-15-39-9-56 7-19 23-32 44-42-26 1-44-11-53-32-6-17-4-36 3-56-18 10-35 16-54 16-28 0-43-15-61-36z"/>\
-      </svg>') center/contain no-repeat;
+  /* центрируем твоё изображение в круге */
+  .batsignal .disc .logo{
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 64px; /* подстрой при необходимости */
+    height: 64px;
+    object-fit: contain;
+    opacity:.95;
+    filter: drop-shadow(0 0 2px rgba(0,0,0,.35));
+    animation: logoPulse 3.5s ease-in-out infinite;
   }
+  @keyframes logoPulse{ 0%,100%{ transform: scale(1) rotate(-0.6deg) } 50%{ transform: scale(1.03) rotate(0.6deg) } }
 </style>
 </head>
 <body>
   <!-- Bat-Signal (включается из JS, когда лидер — золото) -->
   <div id="batsignal" class="batsignal">
     <div class="beam"></div>
-    <div class="disc"></div>
-    <div class="bat"></div>
+    <div class="disc">
+      <img class="logo" src="bat-signal.png" alt="Bat Signal">
+    </div>
   </div>
 
   <div class="wrap">
