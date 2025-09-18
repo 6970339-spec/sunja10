@@ -8,6 +8,8 @@
   :root{
     --bg:#0b1220; --muted:#7e8aa3; --text:#e8eefc;
     --gold:#ffd54a;
+    --disc: 64px;     /* диаметр диска справа */
+    --thin: 6px;      /* толщина луча у источника */
   }
   html,body{height:100%}
   body{
@@ -25,8 +27,8 @@
       url('data:image/svg+xml;utf8,\
       <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="160" viewBox="0 0 1600 160">\
         <rect width="1600" height="160" fill="%230a1326"/>\
-        <path d="M0,140 h80 v-40 h40 v-60 h60 v60 h40 v-30 h40 v30 h50 v-70 h70 в70 h40 в-40 h50 в40 h60 в-90 h60 в90 h60 в-50 h40 в50 h70 в-30 h30 в30 h70 в-110 h50 в110 h80 в20 H0z" fill="%2312213f"/>\
-        <path d="M0,150 h90 в-30 h30 в-60 h40 в60 h50 в-40 h40 в40 h50 в-70 h60 в70 h40 в-30 h60 в30 h70 в-100 h40 в100 h50 в-50 h60 в50 h90 в10 H0z" fill="%23152a52"/>\
+        <path d="M0,140 h80 v-40 h40 v-60 h60 v60 h40 v-30 h40 v30 h50 v-70 h70 v70 h40 v-40 h50 v40 h60 v-90 h60 v90 h60 v-50 h40 v50 h70 v-30 h30 v30 h70 v-110 h50 v110 h80 v20 H0z" fill="%2312213f"/>\
+        <path d="M0,150 h90 v-30 h30 v-60 h40 v60 h50 v-40 h40 v40 h50 v-70 h60 v70 h40 v-30 h60 v30 h70 v-100 h40 v100 h50 v-50 h60 v50 h90 v10 H0z" fill="%23152a52"/>\
       </svg>') repeat-x bottom left / cover;
     opacity:.85; pointer-events:none;
   }
@@ -60,15 +62,15 @@
   .blink{animation:blink 1.2s linear infinite}@keyframes blink{50%{opacity:.35}}
 
   /* ───────────────────────────
-     Bat-Signal в заголовке (лампа слева → луч → цель справа)
+     Bat-Signal в заголовке
      ─────────────────────────── */
   .batsignal{
-    --disc: 56px; /* диаметр “диска” позади цели */
-    position: relative;                 /* встроен в строку заголовка */
-    width: 260px; height: 72px;         /* подстрой при желании */
-    display: inline-block;
-    vertical-align: middle;
+    position: relative;
+    width: calc(58px + 12px + 210px + var(--disc)); /* лампа + отступ + луч + диск */
+    height: calc(var(--disc) + 16px);               /* чтобы круг не обрезался */
+    display:inline-block; vertical-align:middle;
     margin-right: 6px;
+    overflow: visible;
 
     opacity: 0; transform: translateY(-4px) scale(.96);
   }
@@ -83,7 +85,7 @@
   @keyframes powerOn  { from{opacity:0; transform:scaleX(.7)} to{opacity:1; transform:scaleX(1)} }
   @keyframes powerOff { from{opacity:1; transform:scaleX(1)} to{opacity:0; transform:scaleX(.7)} }
 
-  /* ЛАМПА слева (твой PNG) */
+  /* Лампа слева (PNG) */
   .batsignal .projector{
     position:absolute; left:0; bottom:4px;
     width: 60px; height: 60px; object-fit:contain;
@@ -97,14 +99,25 @@
     50%    { transform: rotate(-5deg) translateY(-1px) }
   }
 
-  /* ЛУЧ слева→вправо (оставляем место под цель справа) */
+  /* Луч слева→вправо; конец луча = ширина диска */
   .batsignal .beam{
-    position:absolute; left:58px; top:10px; right:calc(var(--disc) + 10px); bottom:10px;
+    /* оставим справа место под диск */
+    position:absolute; left:58px; top:8px; right:calc(var(--disc) + 8px); bottom:8px;
     transform-origin: left center;
+    /* одна и та же форма для всех слоёв луча */
+    --beam-clip: polygon(
+      0% calc(50% - var(--thin)),
+      100% calc(50% - (var(--disc)/2)),
+      100% calc(50% + (var(--disc)/2)),
+      0% calc(50% + var(--thin))
+    );
   }
+  .batsignal .beam-core,
+  .batsignal .beam-sweep,
+  .batsignal .beam-dust{ clip-path: var(--beam-clip); }
+
   .batsignal .beam-core{
     position:absolute; inset:0;
-    clip-path: polygon(0% 48%, 100% 18%, 100% 82%, 0% 58%);
     background: linear-gradient(90deg,
                 rgba(255,238,170,.30),
                 rgba(255,238,170,.08) 70%,
@@ -117,7 +130,6 @@
 
   .batsignal .beam-sweep{
     position:absolute; inset:0;
-    clip-path: polygon(0% 48%, 100% 18%, 100% 82%, 0% 58%);
     background:
       linear-gradient(90deg, transparent 0%,
                                rgba(255,245,180,.45) 10%,
@@ -137,7 +149,6 @@
 
   .batsignal .beam-dust{
     position:absolute; inset:3% 2%;
-    clip-path: polygon(0% 48%, 100% 18%, 100% 82%, 0% 58%);
     background:
       radial-gradient(1.8px 1.8px at 12% 78%, rgba(255,255,210,.25) 0, rgba(255,255,210,0) 60%),
       radial-gradient(1.8px 1.8px at 32% 60%, rgba(255,255,210,.18) 0, rgba(255,255,210,0) 60%),
@@ -152,22 +163,20 @@
     100% { transform: translateX( 1%) translateY(-6%) }
   }
 
-  /* ЦЕЛЬ справа: картинка + ЖЁЛТЫЙ ДИСК за ней */
+  /* Цель справа: ПОЛНОЦЕННЫЙ круг + картинка
+     Круг (диск) ВСЕГДА видим, картинка плавно появляется вместе с лучом */
   .batsignal .target{
     position:absolute; right:8px; top:8px;
     width: var(--disc); height: var(--disc);
   }
-  /* Жёлтый диск (как ты прислал) — позади изображения */
   .batsignal .target::before{
     content:"";
     position: absolute;
-    right: 0; top: 0;
-    width: var(--disc); height: var(--disc);
+    inset: 0;
     border-radius: 50%;
     background: radial-gradient(circle at 35% 35%, #fff9c9 0%, #ffe58b 56%, #ffd55a 70%, rgba(0, 0, 0, 0) 71%);
     box-shadow: 0 0 32px 10px rgba(255, 240, 150, .38), inset -10px 10px 12px rgba(0, 0, 0, .25);
     animation: spotPulse 2.8s ease-in-out infinite;
-    z-index: 0;
   }
   @keyframes spotPulse { 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.1) } }
 
@@ -175,10 +184,10 @@
     position:absolute; inset:0;
     width:100%; height:100%; object-fit:contain;
     filter: drop-shadow(0 0 2px rgba(0,0,0,.35));
-    z-index: 1;
-    animation: logoBreath 4s ease-in-out infinite;
+    transition: opacity .45s ease;
+    opacity: 0;              /* по умолчанию скрыта */
   }
-  @keyframes logoBreath{ 0%,100%{ transform: scale(1) rotate(-0.4deg) } 50%{ transform: scale(1.03) rotate(0.4deg) } }
+  .batsignal.show .target-img{ opacity: 1; } /* появляется, когда луч включён */
 </style>
 </head>
 <body>
@@ -186,7 +195,7 @@
   <div class="wrap">
     <header>
       <div class="title">
-        <!-- Лампа слева, луч, справа цель (та же картинка) + жёлтый диск сзади -->
+        <!-- Лампа слева → луч → справа круг с картинкой -->
         <div id="batsignal" class="batsignal" aria-hidden="true">
           <img class="projector" src="bat-signal.png" alt="">
           <div class="beam">
