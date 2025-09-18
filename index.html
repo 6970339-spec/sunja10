@@ -7,9 +7,7 @@
 <style>
   :root{
     --bg:#0b1220; --muted:#7e8aa3; --text:#e8eefc;
-    --gold:#ffd54a;
-    --disc: 64px;     /* диаметр диска справа */
-    --thin: 6px;      /* толщина луча у источника */
+    --gold:#ffd54a; --disc:52px;
   }
   html,body{height:100%}
   body{
@@ -62,67 +60,38 @@
   .blink{animation:blink 1.2s linear infinite}@keyframes blink{50%{opacity:.35}}
 
   /* ───────────────────────────
-     Bat-Signal в заголовке
+     Bat-Signal встроенный в заголовок
      ─────────────────────────── */
   .batsignal{
-    position: relative;
-    width: calc(58px + 12px + 210px + var(--disc)); /* лампа + отступ + луч + диск */
-    height: calc(var(--disc) + 16px);               /* чтобы круг не обрезался */
-    display:inline-block; vertical-align:middle;
+    position: relative;                 /* встроен в строку заголовка */
+    width: 150px; height: 68px;         /* компактно */
+    display: inline-block;
+    vertical-align: middle;
     margin-right: 6px;
-    overflow: visible;
-
-    opacity: 0; transform: translateY(-4px) scale(.96);
   }
-  .batsignal.show{
-    opacity:1; transform: translateY(0) scale(1);
+
+  /* луч: конус слева→вправо */
+  .batsignal .beam{
+    position:absolute; left:0; top:8px; right:0; bottom:8px;
+    transform-origin: left center;
+    opacity: 0;
+    transform: scaleX(.7);
     transition: opacity .45s ease, transform .45s ease;
   }
-
-  /* эффекты включения/выключения */
-  .batsignal.on  .beam { animation: powerOn .5s ease both;  }
-  .batsignal.off .beam { animation: powerOff .5s ease both; }
-  @keyframes powerOn  { from{opacity:0; transform:scaleX(.7)} to{opacity:1; transform:scaleX(1)} }
-  @keyframes powerOff { from{opacity:1; transform:scaleX(1)} to{opacity:0; transform:scaleX(.7)} }
-
-  /* Лампа слева (PNG) */
-  .batsignal .projector{
-    position:absolute; left:0; bottom:4px;
-    width: 60px; height: 60px; object-fit:contain;
-    transform-origin: 40% 70%;
-    transform: rotate(-6deg);
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,.55));
-    animation: projectorWobble 11s ease-in-out infinite;
+  .batsignal.active .beam {
+    opacity: 1;
+    transform: scaleX(1);
   }
-  @keyframes projectorWobble{
-    0%,100%{ transform: rotate(-6deg) translateY(0) }
-    50%    { transform: rotate(-5deg) translateY(-1px) }
-  }
-
-  /* Луч слева→вправо; конец луча = ширина диска */
-  .batsignal .beam{
-    /* оставим справа место под диск */
-    position:absolute; left:58px; top:8px; right:calc(var(--disc) + 8px); bottom:8px;
-    transform-origin: left center;
-    /* одна и та же форма для всех слоёв луча */
-    --beam-clip: polygon(
-      0% calc(50% - var(--thin)),
-      100% calc(50% - (var(--disc)/2)),
-      100% calc(50% + (var(--disc)/2)),
-      0% calc(50% + var(--thin))
-    );
-  }
-  .batsignal .beam-core,
-  .batsignal .beam-sweep,
-  .batsignal .beam-dust{ clip-path: var(--beam-clip); }
-
   .batsignal .beam-core{
     position:absolute; inset:0;
+    clip-path: polygon(0% 40%, 100% 0%, 100% 100%, 0% 60%);
     background: linear-gradient(90deg,
                 rgba(255,238,170,.30),
                 rgba(255,238,170,.08) 70%,
                 rgba(255,238,170,0) 100%);
     filter: blur(.9px);
+  }
+  .batsignal.active .beam-core {
     animation: coreFlicker 3.6s ease-in-out infinite, sway 9s ease-in-out infinite;
   }
   @keyframes coreFlicker{ 0%,100%{opacity:.93} 40%{opacity:.86} 50%{opacity:1} 60%{opacity:.9}}
@@ -130,6 +99,7 @@
 
   .batsignal .beam-sweep{
     position:absolute; inset:0;
+    clip-path: polygon(0% 40%, 100% 0%, 100% 100%, 0% 60%);
     background:
       linear-gradient(90deg, transparent 0%,
                                rgba(255,245,180,.45) 10%,
@@ -139,6 +109,8 @@
     filter: blur(1px);
     mix-blend-mode: screen;
     opacity:.65;
+  }
+  .batsignal.active .beam-sweep {
     animation: sweepX 5.2s ease-in-out infinite;
   }
   @keyframes sweepX{
@@ -147,47 +119,23 @@
     100% { background-position: -40% 0; background-size: 200% 100% }
   }
 
+  /* bat-signal.png с желтым фоном */
   .batsignal .beam-dust{
-    position:absolute; inset:3% 2%;
-    background:
-      radial-gradient(1.8px 1.8px at 12% 78%, rgba(255,255,210,.25) 0, rgba(255,255,210,0) 60%),
-      radial-gradient(1.8px 1.8px at 32% 60%, rgba(255,255,210,.18) 0, rgba(255,255,210,0) 60%),
-      radial-gradient(1.8px 1.8px at 56% 70%, rgba(255,255,210,.22) 0, rgba(255,255,210,0) 60%),
-      radial-gradient(1.8px 1.8px at 76% 50%, rgba(255,255,210,.16) 0, rgba(255,255,210,0) 60%);
-    filter: blur(.25px);
-    opacity:.6;
-    animation: dustDrift 9s linear infinite;
-  }
-  @keyframes dustDrift{
-    0%   { transform: translateX(-1%) translateY(6%) }
-    100% { transform: translateX( 1%) translateY(-6%) }
-  }
-
-  /* Цель справа: ПОЛНОЦЕННЫЙ круг + картинка
-     Круг (диск) ВСЕГДА видим, картинка плавно появляется вместе с лучом */
-  .batsignal .target{
-    position:absolute; right:8px; top:8px;
+    position:absolute; right:0; top:8px;
     width: var(--disc); height: var(--disc);
-  }
-  .batsignal .target::before{
-    content:"";
-    position: absolute;
-    inset: 0;
     border-radius: 50%;
     background: radial-gradient(circle at 35% 35%, #fff9c9 0%, #ffe58b 56%, #ffd55a 70%, rgba(0, 0, 0, 0) 71%);
     box-shadow: 0 0 32px 10px rgba(255, 240, 150, .38), inset -10px 10px 12px rgba(0, 0, 0, .25);
-    animation: spotPulse 2.8s ease-in-out infinite;
   }
-  @keyframes spotPulse { 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.1) } }
-
-  .batsignal .target-img{
-    position:absolute; inset:0;
-    width:100%; height:100%; object-fit:contain;
-    filter: drop-shadow(0 0 2px rgba(0,0,0,.35));
+  .batsignal .beam-dust-img{
+    position:absolute; right:0; top:8px;
+    width: var(--disc); height: var(--disc); object-fit: contain;
+    opacity: 0;
     transition: opacity .45s ease;
-    opacity: 0;              /* по умолчанию скрыта */
   }
-  .batsignal.show .target-img{ opacity: 1; } /* появляется, когда луч включён */
+  .batsignal.active .beam-dust-img {
+    opacity: 1;
+  }
 </style>
 </head>
 <body>
@@ -195,17 +143,14 @@
   <div class="wrap">
     <header>
       <div class="title">
-        <!-- Лампа слева → луч → справа круг с картинкой -->
+        <!-- ВСТРОЕННЫЙ ПРОЖЕКТОР ВМЕСТО ЛОГО -->
         <div id="batsignal" class="batsignal" aria-hidden="true">
-          <img class="projector" src="bat-signal.png" alt="">
           <div class="beam">
             <div class="beam-core"></div>
             <div class="beam-sweep"></div>
-            <div class="beam-dust"></div>
           </div>
-          <div class="target">
-            <img class="target-img" src="bat-signal.png" alt="bat-signal">
-          </div>
+          <div class="beam-dust"></div>
+          <img class="beam-dust-img" src="bat-signal.png" alt="">
         </div>
         Школьный рейтинг — Online
       </div>
@@ -247,15 +192,12 @@
   function powerOn(){
     if (signalOn) return;
     signalOn = true;
-    batSignalEl.classList.add('show','on');
-    batSignalEl.classList.remove('off');
-    setTimeout(()=>batSignalEl.classList.remove('on'), 520);
+    batSignalEl.classList.add('active');
   }
   function powerOff(){
     if (!signalOn) return;
     signalOn = false;
-    batSignalEl.classList.add('off');
-    setTimeout(()=>{ batSignalEl.classList.remove('off','show'); }, 520);
+    batSignalEl.classList.remove('active');
   }
 
   async function fetchCSV(){
