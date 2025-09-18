@@ -172,7 +172,7 @@
         </div>
         Школьный рейтинг — Online
       </div>
-      <div class="subtitle" id="status">Загрузка…</div>
+      <div class="subtitle" id="status"></div>
     </header>
 
     <div id="grid" class="grid"></div>
@@ -188,7 +188,7 @@
 <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
 <script>
   const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-yAedPlzSiucopAyXDGUCa4NC8sSVW1e6yxsFXksSIgxTkJhkONG6daXkg2Y8cGwaqsrffbt22_Py/pub?gid=1022445244&single=true&output=csv";
-  const REFRESH_MS = 5000;
+  const REFRESH_MS = 11000;
 
   const gridEl    = document.getElementById('grid');
   const statusEl  = document.getElementById('status');
@@ -220,16 +220,13 @@
 
   async function fetchCSV(){
     try{
-      statusEl.innerHTML = 'Обновление… <span class="blink">●</span>';
       const res = await fetch(CSV_URL + '&_=' + Date.now(), {cache:'no-store'});
       if(!res.ok) throw new Error('HTTP '+res.status);
       const text = await res.text();
       const parsed = Papa.parse(text, { skipEmptyLines: "greedy" });
       render(parsed.data);
-      statusEl.textContent = 'Обновлено';
       updatedEl.textContent = 'Время: ' + new Date().toLocaleTimeString();
     }catch(e){
-      statusEl.textContent = 'Ошибка загрузки CSV';
       console.error(e);
     }
   }
