@@ -119,14 +119,21 @@
     100% { background-position: -40% 0; background-size: 200% 100% }
   }
 
-  /* bat-signal.png с желтым фоном */
+  /* Желтый круг (всегда виден) */
   .batsignal .beam-dust{
     position:absolute; right:0; top:8px;
     width: var(--disc); height: var(--disc);
     border-radius: 50%;
     background: radial-gradient(circle at 35% 35%, #fff9c9 0%, #ffe58b 56%, #ffd55a 70%, rgba(0, 0, 0, 0) 71%);
     box-shadow: 0 0 32px 10px rgba(255, 240, 150, .38), inset -10px 10px 12px rgba(0, 0, 0, .25);
+    opacity: 0.5; /* слегка приглушен, когда луч выключен */
   }
+  .batsignal.active .beam-dust {
+    opacity: 1; /* полностью виден, когда луч активен */
+    transition: opacity .45s ease;
+  }
+
+  /* bat-signal.png (появляется с лучом) */
   .batsignal .beam-dust-img{
     position:absolute; right:0; top:8px;
     width: var(--disc); height: var(--disc); object-fit: contain;
