@@ -11,10 +11,10 @@
       --text: #e8eefc;
       --gold: #ffd54a;
       /* Настройки прожектора */
-      --disc: 64px; /* диаметр диска-мишени сверху */
-      --thin: 2px; /* толщина луча у источника (сужена) */
-      --beam: 400px; /* длина луча (увеличена для вертикального направления) */
-      --gap: 0px; /* зазор между источником и лучом (убран) */
+      --disc: 64px; /* диаметр диска-мишени */
+      --thin: 2px; /* толщина луча у источника */
+      --beam: 50vh; /* длина луча, адаптивная для высоты экрана */
+      --gap: 0px; /* зазор между источником и лучом */
       --sweep: 8s; /* длительность прохода яркой полосы */
     }
 
@@ -79,7 +79,7 @@
       margin: 0 auto;
       padding: 20px;
       position: relative;
-      z-index: 1;
+      z-index: 2; /* Над лучом и городом */
     }
 
     header {
@@ -181,11 +181,11 @@
     /* ─────────────────────────── Bat-Signal из Готэма снизу вверх ─────────────────────────── */
     .batsignal {
       position: fixed;
-      left: 2vw; /* Позиция у левого края, адаптивно */
-      bottom: 160px; /* Выравнивание с верхней частью города */
-      width: calc(var(--disc) + 16px);
-      height: calc(var(--beam) + var(--disc) + 16px);
-      z-index: -1; /* За городом и текстом */
+      left: 0; /* Выравнивание по левому краю */
+      bottom: 160px; /* Точно на верхнем крае города */
+      width: 100vw; /* Полная ширина для адаптивности */
+      height: calc(var(--beam) + var(--disc)); /* Высота луча + диск */
+      z-index: 1; /* Между городом (z:0) и текстом (z:2) */
       overflow: visible;
       opacity: 0;
       transform: translateY(4px) scale(.96);
@@ -218,16 +218,16 @@
     .batsignal .beam {
       position: absolute;
       bottom: 0;
-      left: 8px; /* Центрировано по горизонтали в .batsignal */
+      left: 2vw; /* Небольшой отступ от левого края */
       width: var(--disc);
       height: var(--beam);
-      transform: rotate(-30deg); /* Угол наклона луча к диску */
-      transform-origin: bottom left; /* Точка поворота у левого нижнего угла */
+      transform: rotate(-45deg); /* Наклон луча к диску */
+      transform-origin: bottom left; /* Точка поворота у основания луча */
       --beam-clip: polygon(
-        calc(50% - var(--thin)) 0%,
-        calc(50% - (var(--disc)/2)) 100%,
-        calc(50% + (var(--disc)/2)) 100%,
-        calc(50% + var(--thin)) 0%
+        0 0, /* У левого нижнего угла */
+        calc(var(--disc) - var(--thin)) 100%, /* Широкая часть у диска */
+        var(--disc) 100%,
+        var(--thin) 0
       );
     }
 
@@ -297,8 +297,8 @@
 
     .batsignal .target {
       position: absolute;
-      left: 8px;
-      top: calc(-var(--beam) - 4px); /* Вверху луча с небольшим перекрытием */
+      left: calc(2vw + var(--beam) * 0.707); /* Смещение по X согласно углу 45deg */
+      bottom: calc(160px + var(--beam) * 0.707); /* Смещение по Y согласно углу 45deg */
       width: var(--disc);
       height: var(--disc);
     }
@@ -330,15 +330,24 @@
 
     /* Адаптивность для мобильных устройств */
     @media (max-width: 600px) {
+      :root {
+        --disc: 48px; /* Меньший диск на мобильных */
+        --beam: 40vh; /* Уменьшенная длина луча */
+      }
+
       .batsignal {
-        left: 1vw;
+        left: 0;
         bottom: 120px; /* Сдвиг вверх для меньших экранов */
-        width: calc(var(--disc) + 8px);
-        height: calc(var(--beam) * 0.8 + var(--disc) + 8px);
       }
 
       .batsignal .beam {
-        transform: rotate(-25deg); /* Меньший угол для узких экранов */
+        left: 1vw;
+        transform: rotate(-40deg); /* Меньший угол для узких экранов */
+      }
+
+      .batsignal .target {
+        left: calc(1vw + var(--beam) * 0.766); /* Смещение по X для угла 40deg */
+        bottom: calc(120px + var(--beam) * 0.839); /* Смещение по Y для угла 40deg */
       }
 
       .title {
