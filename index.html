@@ -24,6 +24,7 @@
             font-family:Inter,system-ui,Segoe UI,Roboto,Arial;
             background: radial-gradient(1200px 800px at 20% -10%,#162554 0%,#0b1220 60%) fixed;
             overflow-x:hidden;
+            position: relative;
         }
         /* Силуэт города внизу (декор) */
         .city {
@@ -71,7 +72,7 @@
             100% { transform: translate(-100px, 160px) rotate(45deg); opacity: 0; }
         }
         
-        .wrap{max-width:800px;margin:0 auto;padding:20px; position:relative; z-index:1}
+        .wrap{max-width:800px;margin:0 auto;padding:20px; position:relative; z-index:2}
         header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
         .title{
             display:flex;
@@ -99,41 +100,21 @@
         .medal{font-size:24px}
         .footer{margin-top:12px;display:flex;justify-content:space-between;color:#7e8aa3;font-size:12px}
         
-        /* ─────────────────────────── Bat-Signal из Готэма снизу вверх ─────────────────────────── */
+        /* ─────────────────────────── Постоянный луч из Готэма ─────────────────────────── */
         .batsignal{
             position: fixed;
-            left: 50px; /* Позиционируем слева, из здания */
-            bottom: 80px; /* Центрировано в нижней части города */
+            left: 50px;
+            bottom: 80px;
             width: calc(var(--disc) + 16px);
             height: calc(var(--beam) + var(--disc) + 16px);
-            z-index: -1; /* За городом и текстом */
+            z-index: 1;
             overflow: visible;
-            opacity: 0;
-            transform: translateY(4px) scale(.96);
         }
-        .batsignal.show{
-            opacity: 1;
-            transform: translateY(0) scale(1);
-            transition: opacity .45s ease, transform .45s ease;
-        }
-        .batsignal.on .beam {
-            animation: powerOn .5s ease both;
-        }
-        .batsignal.off .beam {
-            animation: powerOff .5s ease both;
-        }
-        @keyframes powerOn {
-            from{opacity:0; transform:scaleY(.7)}
-            to{opacity:1; transform:scaleY(1)}
-        }
-        @keyframes powerOff {
-            from{opacity:1; transform:scaleY(1)}
-            to{opacity:0; transform:scaleY(.7)}
-        }
+        
         .batsignal .beam{
             position: absolute;
             bottom: 0;
-            left: 8px; /* Центрировано по горизонтали в .batsignal */
+            left: 8px;
             width: var(--disc);
             height: var(--beam);
             transform: rotate(-90deg);
@@ -175,14 +156,10 @@
             mix-blend-mode: screen;
             opacity: .65;
             animation: sweepOneWay var(--sweep) linear infinite;
-            animation-play-state: paused;
         }
         @keyframes sweepOneWay{
             0% { background-position: 0 300%; }
             100% { background-position: 0 -100%; }
-        }
-        .batsignal.show .beam-sweep{
-            animation-play-state: running;
         }
         .batsignal .beam-dust{
             position: absolute;
@@ -202,7 +179,7 @@
         .batsignal .target{
             position: absolute;
             left: 8px;
-            top: calc(-var(--beam) - 4px); /* Вверху луча с небольшим перекрытием */
+            top: calc(-var(--beam) - 4px);
             width: var(--disc);
             height: var(--disc);
         }
@@ -267,8 +244,6 @@
         const REFRESH_MS = 11000;
         const gridEl = document.getElementById('grid');
         const updatedEl = document.getElementById('updated');
-        const batSignalEl = document.getElementById('batsignal');
-        let signalOn = false;
         
         const medalOrder = { gold:0, silver:1, bronze:2, "":3 };
         const medalType = (str)=>{
@@ -279,22 +254,6 @@
             return '';
         };
         const medalEmoji = (t)=> t==='gold'?'🥇':t==='silver'?'🥈':t==='bronze'?'🥉':'';
-        
-        function powerOn(){
-            if (signalOn) return;
-            signalOn = true;
-            batSignalEl.classList.add('show','on');
-            batSignalEl.classList.remove('off');
-            setTimeout(()=>batSignalEl.classList.remove('on'), 520);
-        }
-        function powerOff(){
-            if (!signalOn) return;
-            signalOn = false;
-            batSignalEl.classList.add('off');
-            setTimeout(()=>{
-                batSignalEl.classList.remove('off','show');
-            }, 520);
-        }
         
         async function fetchCSV(){
             try{
@@ -312,7 +271,6 @@
         function render(rows){
             if(!rows || rows.length===0){
                 gridEl.innerHTML='';
-                powerOff();
                 return;
             }
             const header = rows[0].map(h => (h||'').toString().trim().toLowerCase());
@@ -348,10 +306,6 @@
                 if(byS) return byS;
                 return a.name.localeCompare(b.name,'ru');
             });
-            
-            const topMedal = medalType(data[0]?.medal);
-            if (topMedal === 'gold') powerOn();
-            else powerOff();
             
             gridEl.innerHTML='';
             data.forEach((row,i)=>{
