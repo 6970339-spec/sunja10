@@ -7,7 +7,7 @@
 <style>
   :root{
     --bg:#0b1220; --muted:#7e8aa3; --text:#e8eefc;
-    --gold:#ffd54a; --disc: 50px;
+    --gold:#ffd54a;
   }
   html,body{height:100%}
   body{
@@ -25,8 +25,8 @@
       url('data:image/svg+xml;utf8,\
       <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="160" viewBox="0 0 1600 160">\
         <rect width="1600" height="160" fill="%230a1326"/>\
-        <path d="M0,140 h80 v-40 h40 v-60 h60 v60 h40 v-30 h40 v30 h50 v-70 h70 v70 h40 v-40 h50 v40 h60 v-90 h60 v90 h60 v-50 h40 v50 h70 v-30 h30 v30 h70 v-110 h50 v110 h80 v20 H0z" fill="%2312213f"/>\
-        <path d="M0,150 h90 v-30 h30 v-60 h40 v60 h50 v-40 h40 v40 h50 v-70 h60 v70 h40 v-30 h60 v30 h70 v-100 h40 v100 h50 v-50 h60 v50 h90 v10 H0z" fill="%23152a52"/>\
+        <path d="M0,140 h80 v-40 h40 v-60 h60 v60 h40 v-30 h40 v30 h50 v-70 h70 в70 h40 в-40 h50 в40 h60 в-90 h60 в90 h60 в-50 h40 в50 h70 в-30 h30 в30 h70 в-110 h50 в110 h80 в20 H0z" fill="%2312213f"/>\
+        <path d="M0,150 h90 в-30 h30 в-60 h40 в60 h50 в-40 h40 в40 h50 в-70 h60 в70 h40 в-30 h60 в30 h70 в-100 h40 в100 h50 в-50 h60 в50 h90 в10 H0z" fill="%23152a52"/>\
       </svg>') repeat-x bottom left / cover;
     opacity:.85; pointer-events:none;
   }
@@ -60,11 +60,12 @@
   .blink{animation:blink 1.2s linear infinite}@keyframes blink{50%{opacity:.35}}
 
   /* ───────────────────────────
-     Bat-Signal встроенный в заголовок
+     Bat-Signal в заголовке (лампа слева → луч → цель справа)
      ─────────────────────────── */
   .batsignal{
+    --disc: 56px; /* диаметр “диска” позади цели */
     position: relative;                 /* встроен в строку заголовка */
-    width: 150px; height: 68px;         /* компактно */
+    width: 260px; height: 72px;         /* подстрой при желании */
     display: inline-block;
     vertical-align: middle;
     margin-right: 6px;
@@ -82,18 +83,32 @@
   @keyframes powerOn  { from{opacity:0; transform:scaleX(.7)} to{opacity:1; transform:scaleX(1)} }
   @keyframes powerOff { from{opacity:1; transform:scaleX(1)} to{opacity:0; transform:scaleX(.7)} }
 
-  /* луч: конус справа→влево */
+  /* ЛАМПА слева (твой PNG) */
+  .batsignal .projector{
+    position:absolute; left:0; bottom:4px;
+    width: 60px; height: 60px; object-fit:contain;
+    transform-origin: 40% 70%;
+    transform: rotate(-6deg);
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,.55));
+    animation: projectorWobble 11s ease-in-out infinite;
+  }
+  @keyframes projectorWobble{
+    0%,100%{ transform: rotate(-6deg) translateY(0) }
+    50%    { transform: rotate(-5deg) translateY(-1px) }
+  }
+
+  /* ЛУЧ слева→вправо (оставляем место под цель справа) */
   .batsignal .beam{
-    position:absolute; left:0; top:8px; right:56px; bottom:8px;
-    transform-origin: right center;
+    position:absolute; left:58px; top:10px; right:calc(var(--disc) + 10px); bottom:10px;
+    transform-origin: left center;
   }
   .batsignal .beam-core{
     position:absolute; inset:0;
-    clip-path: polygon(0% 18%, 100% 48%, 100% 58%, 0% 82%);
+    clip-path: polygon(0% 48%, 100% 18%, 100% 82%, 0% 58%);
     background: linear-gradient(90deg,
-                rgba(255,238,170,0) 0%,
-                rgba(255,238,170,.08) 30%,
-                rgba(255,238,170,.30) 100%);
+                rgba(255,238,170,.30),
+                rgba(255,238,170,.08) 70%,
+                rgba(255,238,170,0) 100%);
     filter: blur(.9px);
     animation: coreFlicker 3.6s ease-in-out infinite, sway 9s ease-in-out infinite;
   }
@@ -102,7 +117,7 @@
 
   .batsignal .beam-sweep{
     position:absolute; inset:0;
-    clip-path: polygon(0% 18%, 100% 48%, 100% 58%, 0% 82%);
+    clip-path: polygon(0% 48%, 100% 18%, 100% 82%, 0% 58%);
     background:
       linear-gradient(90deg, transparent 0%,
                                rgba(255,245,180,.45) 10%,
@@ -120,24 +135,8 @@
     100% { background-position: -40% 0; background-size: 200% 100% }
   }
 
-  /* bat-signal.png с желтым фоном */
   .batsignal .beam-dust{
-    position:absolute; right:18px; top:14px;
-    width: var(--disc); height: var(--disc);
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, #fff9c9 0%, #ffe58b 56%, #ffd55a 70%, rgba(0, 0, 0, 0) 71%);
-    box-shadow: 0 0 32px 10px rgba(255, 240, 150, .38), inset -10px 10px 12px rgba(0, 0, 0, .25);
-  }
-  .batsignal .beam-dust-img{
-    position:absolute; right:18px; top:14px;
-    width: var(--disc); height: var(--disc);
-    object-fit: contain;
-  }
-
-  /* корпус прожектора */
-  .batsignal .projector{
-    position:absolute; left:0; bottom:2px;
-    width: 56px; height: 56px;
+    position:absolute; inset:3% 2%;
     clip-path: polygon(0% 48%, 100% 18%, 100% 82%, 0% 58%);
     background:
       radial-gradient(1.8px 1.8px at 12% 78%, rgba(255,255,210,.25) 0, rgba(255,255,210,0) 60%),
@@ -152,6 +151,34 @@
     0%   { transform: translateX(-1%) translateY(6%) }
     100% { transform: translateX( 1%) translateY(-6%) }
   }
+
+  /* ЦЕЛЬ справа: картинка + ЖЁЛТЫЙ ДИСК за ней */
+  .batsignal .target{
+    position:absolute; right:8px; top:8px;
+    width: var(--disc); height: var(--disc);
+  }
+  /* Жёлтый диск (как ты прислал) — позади изображения */
+  .batsignal .target::before{
+    content:"";
+    position: absolute;
+    right: 0; top: 0;
+    width: var(--disc); height: var(--disc);
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #fff9c9 0%, #ffe58b 56%, #ffd55a 70%, rgba(0, 0, 0, 0) 71%);
+    box-shadow: 0 0 32px 10px rgba(255, 240, 150, .38), inset -10px 10px 12px rgba(0, 0, 0, .25);
+    animation: spotPulse 2.8s ease-in-out infinite;
+    z-index: 0;
+  }
+  @keyframes spotPulse { 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.1) } }
+
+  .batsignal .target-img{
+    position:absolute; inset:0;
+    width:100%; height:100%; object-fit:contain;
+    filter: drop-shadow(0 0 2px rgba(0,0,0,.35));
+    z-index: 1;
+    animation: logoBreath 4s ease-in-out infinite;
+  }
+  @keyframes logoBreath{ 0%,100%{ transform: scale(1) rotate(-0.4deg) } 50%{ transform: scale(1.03) rotate(0.4deg) } }
 </style>
 </head>
 <body>
@@ -159,15 +186,17 @@
   <div class="wrap">
     <header>
       <div class="title">
-        <!-- ВСТРОЕННЫЙ ПРОЖЕКТОР ВМЕСТО ЛОГО -->
+        <!-- Лампа слева, луч, справа цель (та же картинка) + жёлтый диск сзади -->
         <div id="batsignal" class="batsignal" aria-hidden="true">
+          <img class="projector" src="bat-signal.png" alt="">
           <div class="beam">
             <div class="beam-core"></div>
             <div class="beam-sweep"></div>
-            <div class="projector"></div>
+            <div class="beam-dust"></div>
           </div>
-          <div class="beam-dust"></div>
-          <img class="beam-dust-img" src="bat-signal.png" alt="">
+          <div class="target">
+            <img class="target-img" src="bat-signal.png" alt="bat-signal">
+          </div>
         </div>
         Школьный рейтинг — Online
       </div>
