@@ -7,8 +7,16 @@
 <style>
   :root{
     --bg:#0b1220; --muted:#7e8aa3; --text:#e8eefc;
-    --gold:#ffd54a; --disc:52px;
+    --gold:#ffd54a;
+
+    /* Настройки прожектора */
+    --disc: 64px;      /* диаметр диска-мишени справа */
+    --thin: 6px;       /* толщина луча у источника */
+    --beam: 320px;     /* длина луча */
+    --sourceW: 60px;   /* ширина мини-города слева */
+    --gap: 12px;       /* зазор между источником и лучом */
   }
+
   html,body{height:100%}
   body{
     margin:0; color:var(--text);
@@ -17,7 +25,7 @@
     overflow-x:hidden;
   }
 
-  /* Силуэт города внизу (inline SVG) */
+  /* Силуэт города внизу (декор) */
   .city {
     position: fixed; left:0; right:0; bottom:0; height:160px; z-index:0;
     background:
@@ -26,7 +34,7 @@
       <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="160" viewBox="0 0 1600 160">\
         <rect width="1600" height="160" fill="%230a1326"/>\
         <path d="M0,140 h80 v-40 h40 v-60 h60 v60 h40 v-30 h40 v30 h50 v-70 h70 v70 h40 v-40 h50 v40 h60 v-90 h60 v90 h60 v-50 h40 v50 h70 v-30 h30 v30 h70 v-110 h50 v110 h80 v20 H0z" fill="%2312213f"/>\
-        <path d="M0,150 h90 v-30 h30 v-60 h40 v60 h50 v-40 h40 v40 h50 v-70 h60 v70 h40 v-30 h60 v30 h70 v-100 h40 v100 h50 v-50 h60 v50 h90 v10 H0z" fill="%23152a52"/>\
+        <path d="M0,150 h90 v-30 h30 v-60 h40 в60 h50 в-40 h40 в40 h50 в-70 h60 в70 h40 в-30 h60 в30 h70 в-100 h40 в100 h50 в-50 h60 в50 h90 в10 H0z" fill="%23152a52"/>\
       </svg>') repeat-x bottom left / cover;
     opacity:.85; pointer-events:none;
   }
@@ -38,7 +46,8 @@
     font-weight:800; letter-spacing:.5px;
     font-size:clamp(22px,3vw,36px);
   }
-  .subtitle{color:var(--muted);font-size:14px}
+  /* статус скрыт, чтобы не дёргать вёрстку */
+  .subtitle{display:none}
 
   .grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:16px}
   .tile{
@@ -57,41 +66,88 @@
   .medal{font-size:24px}
 
   .footer{margin-top:12px;display:flex;justify-content:space-between;color:#7e8aa3;font-size:12px}
-  .blink{animation:blink 1.2s linear infinite}@keyframes blink{50%{opacity:.35}}
 
   /* ───────────────────────────
-     Bat-Signal встроенный в заголовок
+     Bat-Signal в заголовке
      ─────────────────────────── */
   .batsignal{
-    position: relative;                 /* встроен в строку заголовка */
-    width: 300px; height: 68px;         /* удлинено для луча */
-    display: inline-block;
-    vertical-align: middle;
+    position: relative;
+    width: calc(var(--sourceW) + var(--gap) + var(--beam) + var(--disc) + 16px);
+    height: calc(var(--disc) + 16px);       /* достаточно высоты для ПОЛНОГО круга */
+    display:inline-block; vertical-align:middle;
     margin-right: 6px;
-  }
+    overflow: visible;
 
-  /* луч: конус слева→вправо */
-  .batsignal .beam{
-    position:absolute; left:80px; top:8px; right:0; bottom:8px;
-    transform-origin: left center;
-    opacity: 0;
-    transform: scaleX(.7);
+    opacity: 0; transform: translateY(-4px) scale(.96);
+  }
+  .batsignal.show{
+    opacity:1; transform: translateY(0) scale(1);
     transition: opacity .45s ease, transform .45s ease;
   }
-  .batsignal.active .beam {
-    opacity: 1;
-    transform: scaleX(1);
+
+  /* эффекты включения/выключения */
+  .batsignal.on  .beam { animation: powerOn .5s ease both;  }
+  .batsignal.off .beam { animation: powerOff .5s ease both; }
+  @keyframes powerOn  { from{opacity:0; transform:scaleX(.7)} to{opacity:1; transform:scaleX(1)} }
+  @keyframes powerOff { from{opacity:1; transform:scaleX(1)} to{opacity:0; transform:scaleX(.7)} }
+
+  /* Мини-Готэм слева (вместо первой картинки/лампы) */
+  .batsignal .city-mini{
+    position:absolute; left:0; bottom:2px;
+    width: var(--sourceW); height: var(--sourceW);
+    background:
+      url('data:image/svg+xml;utf8,\
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">\
+          <rect width="64" height="64" fill="none"/>\
+          <g fill="%2311213f">\
+            <rect x="2"  y="28" width="10" height="34"/>\
+            <rect x="14" y="22" width="8"  height="40"/>\
+            <rect x="24" y="18" width="10" height="44"/>\
+            <rect x="36" y="26" width="8"  height="36"/>\
+            <rect x="46" y="20" width="12" height="42"/>\
+          </g>\
+          <g fill="%23162a52">\
+            <rect x="6"  y="40" width="2" height="6"/><rect x="6" y="48" width="2" height="6"/>\
+            <rect x="18" y="32" width="2" height="6"/><rect x="18" y="40" width="2" height="6"/>\
+            <rect x="29" y="28" width="2" height="6"/><rect x="29" y="36" width="2" height="6"/>\
+            <rect x="40" y="36" width="2" height="6"/><rect x="40" y="44" width="2" height="6"/>\
+            <rect x="52" y="30" width="2" height="6"/><rect x="52" y="38" width="2" height="6"/>\
+          </g>\
+        </svg>') center bottom/90% auto no-repeat;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,.55));
+    animation: cityWobble 11s ease-in-out infinite;
   }
+  @keyframes cityWobble{
+    0%,100%{ transform: translateY(0) }
+    50%    { transform: translateY(-1px) }
+  }
+
+  /* Луч слева→вправо; широкий край = диаметр диска */
+  .batsignal .beam{
+    position:absolute;
+    left: calc(var(--sourceW) + var(--gap));
+    top: 8px; bottom: 8px;
+    width: var(--beam);
+    transform-origin: left center;
+
+    --beam-clip: polygon(
+      0% calc(50% - var(--thin)),
+      100% calc(50% - (var(--disc)/2)),
+      100% calc(50% + (var(--disc)/2)),
+      0% calc(50% + var(--thin))
+    );
+  }
+  .batsignal .beam-core,
+  .batsignal .beam-sweep,
+  .batsignal .beam-dust{ clip-path: var(--beam-clip); }
+
   .batsignal .beam-core{
     position:absolute; inset:0;
-    clip-path: polygon(0% 48%, 100% 0%, 100% 100%, 0% 52%);
     background: linear-gradient(90deg,
                 rgba(255,238,170,.30),
                 rgba(255,238,170,.08) 70%,
                 rgba(255,238,170,0) 100%);
     filter: blur(.9px);
-  }
-  .batsignal.active .beam-core {
     animation: coreFlicker 3.6s ease-in-out infinite, sway 9s ease-in-out infinite;
   }
   @keyframes coreFlicker{ 0%,100%{opacity:.93} 40%{opacity:.86} 50%{opacity:1} 60%{opacity:.9}}
@@ -99,7 +155,6 @@
 
   .batsignal .beam-sweep{
     position:absolute; inset:0;
-    clip-path: polygon(0% 48%, 100% 0%, 100% 100%, 0% 52%);
     background:
       linear-gradient(90deg, transparent 0%,
                                rgba(255,245,180,.45) 10%,
@@ -109,8 +164,6 @@
     filter: blur(1px);
     mix-blend-mode: screen;
     opacity:.65;
-  }
-  .batsignal.active .beam-sweep {
     animation: sweepX 5.2s ease-in-out infinite;
   }
   @keyframes sweepX{
@@ -119,46 +172,46 @@
     100% { background-position: -40% 0; background-size: 200% 100% }
   }
 
-  /* Желтый круг (всегда виден) */
   .batsignal .beam-dust{
-    position:absolute; right:0; top:8px;
-    width: var(--disc); height: var(--disc);
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, #fff9c9 0%, #ffe58b 56%, #ffd55a 70%, rgba(0, 0, 0, 0) 71%);
+    position:absolute; inset:3% 2%;
+    background:
+      radial-gradient(1.8px 1.8px at 12% 78%, rgba(255,255,210,.25) 0, rgba(255,255,210,0) 60%),
+      radial-gradient(1.8px 1.8px at 32% 60%, rgba(255,255,210,.18) 0, rgba(255,255,210,0) 60%),
+      radial-gradient(1.8px 1.8px at 56% 70%, rgba(255,255,210,.22) 0, rgba(255,255,210,0) 60%),
+      radial-gradient(1.8px 1.8px at 76% 50%, rgba(255,255,210,.16) 0, rgba(255,255,210,0) 60%);
+    filter: blur(.25px);
+    opacity:.6;
+    animation: dustDrift 9s linear infinite;
+  }
+  @keyframes dustDrift{
+    0%   { transform: translateX(-1%) translateY(6%) }
+    100% { transform: translateX( 1%) translateY(-6%) }
+  }
+
+  /* Мишень справа: круг ВСЕГДА виден; картинка появляется/исчезает с лучом */
+  .batsignal .target{
+    position:absolute;
+    left: calc(var(--sourceW) + var(--gap) + var(--beam) + 8px);
+    top: 8px; width: var(--disc); height: var(--disc);
+  }
+  .batsignal .target::before{
+    content:"";
+    position:absolute; inset:0; border-radius:50%;
+    background: radial-gradient(circle at 35% 35%, #fff9c9 0%, #ffe58b 56%, #ffd55a 70%, rgba(0,0,0,0) 71%);
     box-shadow: 0 0 32px 10px rgba(255, 240, 150, .38), inset -10px 10px 12px rgba(0, 0, 0, .25);
-    opacity: 0.5; /* слегка приглушен, когда луч выключен */
+    animation: spotPulse 2.8s ease-in-out infinite;
   }
-  .batsignal.active .beam-dust {
-    opacity: 1; /* полностью виден, когда луч активен */
-    transition: opacity .45s ease;
-  }
+  @keyframes spotPulse { 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.1) } }
 
-  /* bat-signal.png (появляется с лучом) */
-  .batsignal .beam-dust-img{
-    position:absolute; right:0; top:8px;
-    width: var(--disc); height: var(--disc); object-fit: contain;
-    opacity: 0;
+  .batsignal .target-img{
+    position:absolute; inset:0;
+    width:100%; height:100%; object-fit:contain;
+    filter: drop-shadow(0 0 2px rgba(0,0,0,.35));
     transition: opacity .45s ease;
+    opacity: 0;              /* по умолчанию скрыта */
   }
-  .batsignal.active .beam-dust-img {
-    opacity: 1;
-  }
-
-  /* Маленький силуэт Готэма в начале луча */
-  .batsignal .gotham-silhouette {
-    position: absolute; left: -100px; top: 8px;
-    width: 80px; height: 80px;
-    background: url('data:image/svg+xml;utf8,\
-      <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">\
-        <path d="M0,90 h10 v-20 h10 v-30 h10 v30 h10 v-15 h10 v15 h10 v-35 h10 v35 h10 v-25 h10 v25 h10 v-10 h10 v10 H0z" fill="%2312213f"/>\
-        <path d="M0,95 h15 v-15 h10 v-25 h10 v25 h10 v-20 h10 v20 h10 v-30 h10 v30 h10 v-15 h5 v15 H0z" fill="%23152a52"/>\
-      </svg>') no-repeat center / contain;
-    opacity: 0.6;
-    transition: opacity .45s ease;
-  }
-  .batsignal.active .gotham-silhouette {
-    opacity: 0.8;
-  }
+  /* проявляем картинку, когда мы явно помечаем цель как освещённую */
+  .batsignal.lit .target-img{ opacity:1; }
 </style>
 </head>
 <body>
@@ -166,15 +219,17 @@
   <div class="wrap">
     <header>
       <div class="title">
-        <!-- ВСТРОЕННЫЙ ПРОЖЕКТОР ВМЕСТО ЛОГО -->
+        <!-- Мини-Готэм → длинный луч → круг с картинкой -->
         <div id="batsignal" class="batsignal" aria-hidden="true">
-          <div class="gotham-silhouette"></div>
+          <div class="city-mini"></div>
           <div class="beam">
             <div class="beam-core"></div>
             <div class="beam-sweep"></div>
+            <div class="beam-dust"></div>
           </div>
-          <div class="beam-dust"></div>
-          <img class="beam-dust-img" src="bat-signal.png" alt="">
+          <div class="target">
+            <img class="target-img" src="bat-signal.png" alt="bat-signal">
+          </div>
         </div>
         Школьный рейтинг — Online
       </div>
@@ -194,10 +249,9 @@
 <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
 <script>
   const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ-yAedPlzSiucopAyXDGUCa4NC8sSVW1e6yxsFXksSIgxTkJhkONG6daXkg2Y8cGwaqsrffbt22_Py/pub?gid=1022445244&single=true&output=csv";
-  const REFRESH_MS = 11000;
+  const REFRESH_MS = 11000; // каждые 11 сек
 
   const gridEl    = document.getElementById('grid');
-  const statusEl  = document.getElementById('status');
   const updatedEl = document.getElementById('updated');
   const batSignalEl = document.getElementById('batsignal');
 
@@ -216,12 +270,21 @@
   function powerOn(){
     if (signalOn) return;
     signalOn = true;
-    batSignalEl.classList.add('active');
+    batSignalEl.classList.add('show','on');
+    batSignalEl.classList.remove('off');
+
+    // небольшой лаг: сначала «включается» луч, затем проявляется картинка на диске
+    setTimeout(()=>{ batSignalEl.classList.add('lit'); }, 250);
+    setTimeout(()=>batSignalEl.classList.remove('on'), 520);
   }
   function powerOff(){
     if (!signalOn) return;
     signalOn = false;
-    batSignalEl.classList.remove('active');
+
+    // сразу убираем «свет на цели» (картинка плавно исчезает), затем гасим сам луч
+    batSignalEl.classList.remove('lit');
+    batSignalEl.classList.add('off');
+    setTimeout(()=>{ batSignalEl.classList.remove('off','show'); }, 520);
   }
 
   async function fetchCSV(){
@@ -233,7 +296,7 @@
       render(parsed.data);
       updatedEl.textContent = 'Время: ' + new Date().toLocaleTimeString();
     }catch(e){
-      console.error(e);
+      console.error('Ошибка загрузки CSV:', e);
     }
   }
 
@@ -267,7 +330,7 @@
       return { name, score: Math.round(score), medal, klass };
     }).filter(r=>r.name);
 
-    // сортировка: 🥇 → 🥈 → 🥉 → очки ↓ → ФИО ↑
+    // сортировка
     data.sort((a,b)=>{
       const ma = medalType(a.medal), mb = medalType(b.medal);
       const byM = (medalOrder[ma]??3)-(medalOrder[mb]??3); if(byM) return byM;
@@ -275,14 +338,16 @@
       return a.name.localeCompare(b.name,'ru');
     });
 
-    // включаем/выключаем прожектор по медали лидера
-    const topMedal = medalType(data[0]?.medal);
+    // прожектор по медали лидера
+    const topMedal = medalType(data[0]?.медал ?? data[0]?.medal);
+    // если в шапке столбец «медаль» на русском — ок; на всякий случай fallback выше
     if (topMedal === 'gold') powerOn(); else powerOff();
 
-    // рендер списка
+    // список
     gridEl.innerHTML='';
     data.forEach((row,i)=>{
-      const t = medalType(row.medal), e = medalEmoji(t);
+      const t = medalType(row.medал ?? row.medal);
+      const e = t==='gold'?'🥇':t==='silver'?'🥈':t==='bronze'?'🥉':'';
       const el = document.createElement('div'); el.className='tile';
       el.innerHTML = `
         <div class="left">
@@ -293,7 +358,7 @@
           </div>
         </div>
         <div class="right">
-          ${e?`<div class="medal" data-type="${t}">${e}</div>`:''}
+          ${e?`<div class="medal">${e}</div>`:''}
           <div class="score">${row.score}</div>
         </div>`;
       gridEl.appendChild(el);
