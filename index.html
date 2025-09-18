@@ -12,8 +12,9 @@
     /* Настройки прожектора */
     --disc: 64px;      /* диаметр диска-мишени справа */
     --thin: 6px;       /* толщина луча у источника */
-    --beam: 200px;     /* длина луча (уменьшена) */
-    --gap: 12px;       /* зазор между источником и лучом */
+    --beam: 220px;     /* ДЛИНА ЛУЧА (укорочено) */
+    --sourceW: 0px;    /* ширина источника слева (нет мини-города) */
+    --gap: 8px;        /* небольшой зазор между началом луча и краем контейнера */
     --sweep: 5.2s;     /* длительность прохода яркой полосы */
   }
 
@@ -23,20 +24,6 @@
     font-family:Inter,system-ui,Segoe UI,Roboto,Arial;
     background: radial-gradient(1200px 800px at 20% -10%,#162554 0%,#0b1220 60%) fixed;
     overflow-x:hidden;
-  }
-
-  /* Силуэт города внизу (декор) */
-  .city {
-    position: fixed; left:0; right:0; bottom:0; height:160px; z-index:0;
-    background:
-      linear-gradient(to top, rgba(0,0,0,.55), rgba(0,0,0,0)) 0 0/100% 100%,
-      url('data:image/svg+xml;utf8,\
-      <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="160" viewBox="0 0 1600 160">\
-        <rect width="1600" height="160" fill="%230a1326"/>\
-        <path d="M0,140 h80 v-40 h40 v-60 h60 v60 h40 v-30 h40 v30 h50 v-70 h70 v70 h40 v-40 h50 v40 h60 v-90 h60 v90 h60 v-50 h40 v50 h70 v-30 h30 v30 h70 v-110 h50 v110 h80 v20 H0z" fill="%2312213f"/>\
-        <path d="M0,150 h90 v-30 h30 v-60 h40 v60 h50 v-40 h40 v40 h50 v-70 h60 v70 h40 v-30 h60 v30 h70 v-100 h40 v100 h50 v-50 h60 v50 h90 v10 H0z" fill="%23152a52"/>\
-      </svg>') repeat-x bottom left / cover;
-    opacity:.85; pointer-events:none;
   }
 
   .wrap{max-width:800px;margin:0 auto;padding:20px; position:relative; z-index:1}
@@ -68,12 +55,12 @@
   .footer{margin-top:12px;display:flex;justify-content:space-between;color:#7e8aa3;font-size:12px}
 
   /* ───────────────────────────
-     Bat-Signal в заголовке
+     Bat-Signal в заголовке (без города)
      ─────────────────────────── */
   .batsignal{
     position: relative;
-    width: calc(var(--gap) + var(--beam) + var(--disc) + 16px);
-    height: calc(var(--disc) + 16px);       /* достаточно высоты для ПОЛНОГО круга */
+    width: calc(var(--sourceW) + var(--gap) + var(--beam) + var(--disc) + 16px);
+    height: calc(var(--disc) + 16px);       /* высота под ПОЛНЫЙ круг */
     display:inline-block; vertical-align:middle;
     margin-right: 6px;
     overflow: visible;
@@ -94,7 +81,7 @@
   /* Луч слева→вправо; широкий край = диаметр диска */
   .batsignal .beam{
     position:absolute;
-    left: var(--gap);
+    left: calc(var(--sourceW) + var(--gap)); /* по факту = var(--gap), т.к. sourceW=0 */
     top: 8px; bottom: 8px;
     width: var(--beam);
     transform-origin: left center;
@@ -121,7 +108,7 @@
   @keyframes coreFlicker{ 0%,100%{opacity:.93} 40%{opacity:.86} 50%{opacity:1} 60%{opacity:.9}}
   @keyframes sway       { 0%,100%{ transform: rotate(-0.35deg)} 50%{ transform: rotate(0.35deg)} }
 
-  /* ВАЖНО: пауза/запуск sweep синхронно с появлением картинки */
+  /* Полоса подсветки — синхронизирована с появлением картинки в диске */
   .batsignal .beam-sweep{
     position:absolute; inset:0;
     background:
@@ -162,7 +149,7 @@
   /* Мишень справа: круг ВСЕГДА виден; картинка — по синхронизации с лучом */
   .batsignal .target{
     position:absolute;
-    left: calc(var(--gap) + var(--beam) + 8px);
+    left: calc(var(--sourceW) + var(--gap) + var(--beam) + 8px);
     top: 8px; width: var(--disc); height: var(--disc);
   }
   .batsignal .target::before{
@@ -174,7 +161,9 @@
   }
   @keyframes spotPulse { 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.1) } }
 
-  .batsignal .target-img{
+  /* КАРТИНКА ВНУТРИ ДИСКА: плавное появление/исчезание синхронно с лучом */
+  .batsignal .target-img,
+  .batsignal .beam-dust-img{
     position:absolute; inset:0;
     width:100%; height:100%; object-fit:contain;
     filter: drop-shadow(0 0 2px rgba(0,0,0,.35));
@@ -182,19 +171,15 @@
     animation: targetReveal var(--sweep) ease-in-out infinite;
     animation-play-state: paused; /* запустим синхронно с sweep */
   }
-  /* Появление/исчезание синхронно с проходом яркой полосы (к 50%) */
   @keyframes targetReveal{
-    0%,25%   { opacity: 0; }
-    35%      { opacity: 0.15; }
-    40%      { opacity: 0.45; }
-    45%      { opacity: 0.75; }
-    50%      { opacity: 1; }   /* максимум когда полоса у круга */
-    55%      { opacity: 0.75; }
-    60%      { opacity: 0.45; }
-    65%      { opacity: 0.15; }
-    75%,100% { opacity: 0; }
+    0%,30%   { opacity: 0; }
+    40%      { opacity: .35; }
+    50%      { opacity: 1; }   /* максимум, когда полоса у круга */
+    60%      { opacity: .35; }
+    70%,100% { opacity: 0; }
   }
-  .batsignal.show .target-img{ animation-play-state: running; }
+  .batsignal.show .target-img,
+  .batsignal.show .beam-dust-img{ animation-play-state: running; }
 </style>
 </head>
 <body>
@@ -202,7 +187,7 @@
   <div class="wrap">
     <header>
       <div class="title">
-        <!-- Луч → круг с картинкой (картинка по синхронизации с лучом) -->
+        <!-- Луч → круг с картинкой (без мини-города, укороченный луч) -->
         <div id="batsignal" class="batsignal" aria-hidden="true">
           <div class="beam">
             <div class="beam-core"></div>
@@ -210,7 +195,7 @@
             <div class="beam-dust"></div>
           </div>
           <div class="target">
-            <img class="target-img" src="bat-signal.png" alt="bat-signal">
+            <img class="beam-dust-img" src="bat-signal.png" alt="bat-signal">
           </div>
         </div>
         Школьный рейтинг — Online
@@ -225,8 +210,6 @@
       <span>Полноэкранный режим (F11) на ТВ</span>
     </div>
   </div>
-
-  <div class="city" aria-hidden="true"></div>
 
 <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
 <script>
@@ -270,6 +253,7 @@
       const text = await res.text();
       const parsed = Papa.parse(text, { skipEmptyLines: "greedy" });
       render(parsed.data);
+      /* по желанию можно убрать строку ниже, чтобы ничего не «подпрыгивало» */
       updatedEl.textContent = 'Время: ' + new Date().toLocaleTimeString();
     }catch(e){
       console.error('Ошибка загрузки CSV:', e);
