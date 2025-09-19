@@ -9,12 +9,12 @@
     --bg:#0b1220; --muted:#7e8aa3; --text:#e8eefc; --gold:#ffd54a;
 
     /* Прожектор */
-    --disc: clamp(56px, 7vw, 96px);     /* диаметр диска */
-    --thin: 2px;                        /* толщина у основания (низ) */
-    --raise: 70px;                      /* насколько поднят верх луча и диск */
-    --beam: calc(42vh + 80px + var(--raise));  /* длина луча (основание фикс) */
-    --kiss: 1.5px;                      /* перекрытие луч ↔ диск (без щели) */
-    --sweep: 8s;                        /* период движения полосы снизу вверх */
+    --disc: clamp(56px, 7vw, 96px);           /* диаметр диска */
+    --thin: 2px;                              /* толщина у основания (низ) */
+    --raise: 70px;                            /* насколько поднят верх луча и диск */
+    --beam: calc(42vh + 80px + var(--raise)); /* длина луча (основание фикс) */
+    --kiss: 1.5px;                            /* перекрытие луч ↔ диск (без щели) */
+    --sweep: 8s;                              /* период движения полосы снизу вверх */
   }
 
   html,body{height:100%}
@@ -33,7 +33,7 @@
       url('data:image/svg+xml;utf8,\
       <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="160" viewBox="0 0 1600 160">\
       <rect width="1600" height="160" fill="%230a1326"/>\
-      <path d="M0,140 h80 v-40 h40 v-60 h60 v60 h40 v-30 h40 v30 h50 v-70 h70 v70 h40 v-40 h50 в40 h60 v-90 h60 v90 h60 v-50 h40 v50 h70 v-30 h30 v30 h70 v-110 h50 v110 h80 v20 H0z" fill="%2312213f"/>\
+      <path d="M0,140 h80 v-40 h40 v-60 h60 v60 h40 v-30 h40 v30 h50 v-70 h70 v70 h40 v-40 h50 v40 h60 v-90 h60 v90 h60 v-50 h40 v50 h70 v-30 h30 v30 h70 v-110 h50 v110 h80 v20 H0z" fill="%2312213f"/>\
       <path d="M0,150 h90 v-30 h30 v-60 h40 v60 h50 v-40 h40 v40 h50 v-70 h60 v70 h40 v-30 h60 v30 h70 v-100 h40 v100 h50 v-50 h60 v50 h90 v10 H0z" fill="%23152a52"/>\
       </svg>') repeat-x bottom left / cover;
     opacity:.85; pointer-events:none;
@@ -60,7 +60,7 @@
   .medal{font-size:24px}
   .footer{margin-top:12px;display:flex;justify-content:space-between;color:#7e8aa3;font-size:12px}
 
-  /* ───────────── Постоянный прожектор снизу вверх ───────────── */
+  /* ───────────── Прожектор: ВОГНУТЫЙ верх луча ───────────── */
   .batsignal{
     position:fixed;
     left: clamp(24px, 4vw, 64px);
@@ -71,20 +71,30 @@
     overflow: visible;
   }
 
-  /* Луч = вертикальная трапеция: вверху ширина диска, внизу тонкий «носик» */
   .batsignal .beam{
     position:absolute;
     bottom:0;
-    left: 8px;                               /* центр совпадает с диском */
+    left: 8px;                      /* центр совпадает с диском */
     width: var(--disc);
     height: var(--beam);
-    --beam-clip: polygon(
-      0% 0%, 100% 0%,                        /* верхняя грань под диском */
-      calc(50% + var(--thin)) 100%,          /* низ — тонкий */
-      calc(50% - var(--thin)) 100%
-    );
+    overflow:hidden;
+    /* параметр кривизны вогнутой «кромки» (чем больше, тем глубже дуга) */
+    --concave: 20; /* в единицах из viewBox SVG (0..100). Подбери 16–28 */
   }
-  .beam-core, .beam-sweep, .beam-dust{ clip-path: var(--beam-clip); position:absolute; inset:0; }
+
+  /* Маска с вогнутым верхом применяется ко всем слоям луча */
+  .beam-core, .beam-sweep, .beam-dust, .beam::before{
+    position:absolute; inset:0;
+    -webkit-mask: url('data:image/svg+xml;utf8,\
+      <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100" preserveAspectRatio="none">\
+        <!-- Вогнутая дуга сверху: чем выше точка (50, (20- var(--concave%? не умеет)), тем глубже) -->\
+        <path d="M0,20 Q50,0 100,20 L55,100 L45,100 Z" fill="white"/>\
+      </svg>') no-repeat 50% 0/100% 100%;
+            mask: url('data:image/svg+xml;utf8,\
+      <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100" preserveAspectRatio="none">\
+        <path d="M0,20 Q50,0 100,20 L55,100 L45,100 Z" fill="white"/>\
+      </svg>') no-repeat 50% 0/100% 100%;
+  }
 
   /* Фоновое свечение луча */
   .beam-core{
@@ -97,7 +107,7 @@
   }
   @keyframes coreFlicker{0%,100%{opacity:.93}40%{opacity:.86}50%{opacity:1}60%{opacity:.9}}
 
-  /* Бесшовная полоса света: два слоя идут сдвигом → непрерывно снизу вверх */
+  /* Движущаяся полоса света (бесшовно снизу вверх) */
   .beam-sweep{ overflow:hidden; }
   .beam-sweep::before,
   .beam-sweep::after{
@@ -118,8 +128,8 @@
   .beam-sweep::after{ animation-delay: calc(var(--sweep) / -2); }
 
   @keyframes sweepUpY{
-    0%   { transform: translateY(100%); }        /* снизу */
-    100% { transform: translateY(-40%); }        /* уходит вверх */
+    0%   { transform: translateY(100%); }
+    100% { transform: translateY(-40%); }
   }
 
   /* Лёгкая «пыль» в луче */
@@ -135,7 +145,19 @@
   }
   @keyframes dustDrift{0%{transform:translateX(-1%) translateY(6%)}100%{transform:translateX(1%) translateY(-6%)}}
 
-  /* ДИСК: поднят на +70px; добавлены ВПУКЛОСТЬ и внешний ореол */
+  /* Дополнительный мягкий блик по вогнутой кромке (повторяет маску) */
+  .beam::before{
+    content:"";
+    background: radial-gradient(ellipse at 50% 0%,
+                rgba(255,255,210,.55) 0%,
+                rgba(255,255,210,.22) 55%,
+                rgba(255,255,210,0) 100%);
+    height: 18%;              /* только верхняя зона луча подсвечивается */
+    mix-blend-mode: screen;
+    pointer-events:none;
+  }
+
+  /* ДИСК: свет + «обхват» лучом + лёгкая впуклость */
   .target{
     position:absolute;
     left: 8px;
@@ -143,22 +165,19 @@
     width: var(--disc);
     height: var(--disc);
     border-radius:50%;
-    /* основной светящийся диск (базовый слой) */
     background: radial-gradient(circle at 35% 35%, #fff9c9 0%, #ffe58b 50%, #ffd55a 100%);
     box-shadow: 0 0 8px 3px rgba(255,240,150,.45);
     animation: spotPulse 2.8s ease-in-out infinite;
   }
-  /* Внутренняя тень снизу — эффект «впуклости» */
   .target::before{
     content:""; position:absolute; inset:0; border-radius:50%;
     background: radial-gradient(ellipse at 50% 120%,
                 rgba(0,0,0,.45) 0%,
                 rgba(0,0,0,0) 70%);
     mix-blend-mode: multiply;
-    opacity:.38;
+    opacity:.34;
     pointer-events:none;
   }
-  /* Мягкий внешний ореол/блик ниже диска — «обхват» лучом */
   .target::after{
     content:""; position:absolute; inset:-6px; border-radius:50%;
     background: radial-gradient(120% 80% at 50% 120%,
@@ -198,7 +217,7 @@
     </div>
   </div>
 
-  <!-- Луч всегда включён; полоса света бесшовно идёт снизу вверх -->
+  <!-- Прожектор с ВОГНУТЫМ верхом луча -->
   <div class="batsignal" aria-hidden="true">
     <div class="beam">
       <div class="beam-core"></div>
