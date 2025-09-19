@@ -9,12 +9,12 @@
     --bg:#0b1220; --muted:#7e8aa3; --text:#e8eefc; --gold:#ffd54a;
 
     /* Прожектор */
-    --disc: clamp(56px, 7vw, 96px);           /* диаметр диска */
-    --thin: 2px;                              /* толщина у основания (низ) */
-    --raise: 70px;                            /* насколько поднят верх луча и диск */
-    --beam: calc(42vh + 80px + var(--raise)); /* длина луча (основание фикс) */
-    --kiss: 1.5px;                            /* перекрытие луч ↔ диск (без щели) */
-    --sweep: 8s;                              /* период движения полосы снизу вверх */
+    --disc: clamp(56px, 7vw, 96px);     /* диаметр диска */
+    --thin: 2px;                        /* толщина у основания (низ) */
+    --raise: 70px;                      /* насколько поднят верх луча и диск */
+    --beam: calc(42vh + 80px + var(--raise));  /* длина луча (основание фикс) */
+    --kiss: 1.5px;                      /* перекрытие луч ↔ диск (без щели) */
+    --sweep: 8s;                        /* период движения полосы снизу вверх */
   }
 
   html,body{height:100%}
@@ -60,41 +60,51 @@
   .medal{font-size:24px}
   .footer{margin-top:12px;display:flex;justify-content:space-between;color:#7e8aa3;font-size:12px}
 
-  /* ───────────── Прожектор: ВОГНУТЫЙ верх луча ───────────── */
+  /* ───────────── Постоянный прожектор снизу вверх ───────────── */
   .batsignal{
     position:fixed;
     left: clamp(24px, 4vw, 64px);
-    bottom: 84px;                            /* основание остаётся на месте */
+    bottom: 84px;
     width: calc(var(--disc) + 16px);
-    height: calc(var(--beam) + var(--disc)); /* контейнер = луч + диск */
+    height: calc(var(--beam) + var(--disc));
     z-index: 0;
     overflow: visible;
   }
 
+  /* Луч = вертикальная трапеция: вверху ширина диска, внизу тонкий «носик» */
   .batsignal .beam{
     position:absolute;
     bottom:0;
-    left: 8px;                      /* центр совпадает с диском */
+    left: 8px;
     width: var(--disc);
     height: var(--beam);
-    overflow:hidden;
-    /* параметр кривизны вогнутой «кромки» (чем больше, тем глубже дуга) */
-    --concave: 20; /* в единицах из viewBox SVG (0..100). Подбери 16–28 */
+    --beam-clip: polygon(
+      0% 0%, 100% 0%,
+      calc(50% + var(--thin)) 100%,
+      calc(50% - var(--thin)) 100%
+    );
   }
 
-  /* Маска с вогнутым верхом применяется ко всем слоям луча */
-  .beam-core, .beam-sweep, .beam-dust, .beam::before{
-    position:absolute; inset:0;
-    -webkit-mask: url('data:image/svg+xml;utf8,\
-      <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100" preserveAspectRatio="none">\
-        <!-- Вогнутая дуга сверху: чем выше точка (50, (20- var(--concave%? не умеет)), тем глубже) -->\
-        <path d="M0,20 Q50,0 100,20 L55,100 L45,100 Z" fill="white"/>\
-      </svg>') no-repeat 50% 0/100% 100%;
-            mask: url('data:image/svg+xml;utf8,\
-      <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100" preserveAspectRatio="none">\
-        <path d="M0,20 Q50,0 100,20 L55,100 L45,100 Z" fill="white"/>\
-      </svg>') no-repeat 50% 0/100% 100%;
+  /* Новый псевдоэлемент для создания эффекта вогнутости/тени в верхней части луча */
+  .batsignal .beam::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: radial-gradient(
+      ellipse at 50% 100%,
+      rgba(0, 0, 0, 0.45) 0%,
+      rgba(0, 0, 0, 0) 70%
+    );
+    mix-blend-mode: multiply;
+    opacity: 0.4;
+    pointer-events: none;
+    z-index: 1;
   }
+
+  .beam-core, .beam-sweep, .beam-dust{ clip-path: var(--beam-clip); position:absolute; inset:0; }
 
   /* Фоновое свечение луча */
   .beam-core{
@@ -107,7 +117,7 @@
   }
   @keyframes coreFlicker{0%,100%{opacity:.93}40%{opacity:.86}50%{opacity:1}60%{opacity:.9}}
 
-  /* Движущаяся полоса света (бесшовно снизу вверх) */
+  /* Бесшовная полоса света: два слоя идут сдвигом → непрерывно снизу вверх */
   .beam-sweep{ overflow:hidden; }
   .beam-sweep::before,
   .beam-sweep::after{
@@ -122,7 +132,7 @@
     filter: blur(1px);
     mix-blend-mode: screen;
     will-change: transform;
-    transform: translateY(100%);                 /* старт СНИЗУ */
+    transform: translateY(100%);
     animation: sweepUpY var(--sweep) linear infinite;
   }
   .beam-sweep::after{ animation-delay: calc(var(--sweep) / -2); }
@@ -145,23 +155,11 @@
   }
   @keyframes dustDrift{0%{transform:translateX(-1%) translateY(6%)}100%{transform:translateX(1%) translateY(-6%)}}
 
-  /* Дополнительный мягкий блик по вогнутой кромке (повторяет маску) */
-  .beam::before{
-    content:"";
-    background: radial-gradient(ellipse at 50% 0%,
-                rgba(255,255,210,.55) 0%,
-                rgba(255,255,210,.22) 55%,
-                rgba(255,255,210,0) 100%);
-    height: 18%;              /* только верхняя зона луча подсвечивается */
-    mix-blend-mode: screen;
-    pointer-events:none;
-  }
-
-  /* ДИСК: свет + «обхват» лучом + лёгкая впуклость */
+  /* ДИСК: поднят на +70px; добавлены ВПУКЛОСТЬ и внешний ореол */
   .target{
     position:absolute;
     left: 8px;
-    bottom: calc(var(--beam) - var(--kiss));  /* «поцелуй» луча и диска */
+    bottom: calc(var(--beam) - var(--kiss));
     width: var(--disc);
     height: var(--disc);
     border-radius:50%;
@@ -175,7 +173,7 @@
                 rgba(0,0,0,.45) 0%,
                 rgba(0,0,0,0) 70%);
     mix-blend-mode: multiply;
-    opacity:.34;
+    opacity:.38;
     pointer-events:none;
   }
   .target::after{
@@ -217,7 +215,6 @@
     </div>
   </div>
 
-  <!-- Прожектор с ВОГНУТЫМ верхом луча -->
   <div class="batsignal" aria-hidden="true">
     <div class="beam">
       <div class="beam-core"></div>
@@ -225,7 +222,7 @@
       <div class="beam-dust"></div>
     </div>
     <div class="target">
-      <img class="target-img" src="bat-signal.png" alt="bat-signal">
+      <img class="target-img" src="bat-signal.png" alt="">
     </div>
   </div>
 
@@ -287,7 +284,6 @@
         return { name, scoreRaw, medal, klass, score: Math.round(scoreRaw) };
       }).filter(r=>r.name);
 
-      // Сортировка ТОЛЬКО по баллам (по убыванию), затем по имени
       data.sort((a,b)=>{
         const byScore = b.scoreRaw - a.scoreRaw;
         if (byScore) return byScore;
